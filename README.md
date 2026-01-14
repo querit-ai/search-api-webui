@@ -1,6 +1,6 @@
 # Search API WebUI
 
-A lightweight, local WebUI for testing and visualizing Search APIs (Querit, YDC, etc.). 
+A lightweight, local WebUI for testing and visualizing Search APIs (Querit, YDC, etc.).
 
 ## Features
 
@@ -23,19 +23,28 @@ A lightweight, local WebUI for testing and visualizing Search APIs (Querit, YDC,
    ```bash
    git clone https://github.com/querit-ai/search-api-webui.git
    cd search-api-webui
+   ```
 2. **Build Frontend**
-   ```cd frontend
+   ```bash
+   cd frontend
    npm install
    npm run build
    cd ..
+   ```
 3. **Install Backend**
-   ```pip install -e .
+   ```bash
+   pip install -e .
+   ```
 
 ### Usage
 **Run the server:**
-   ```python -m backend.app
+   ```bash
+   python -m backend.app
+   ```
 Or if you installed via pip:
-   ```search-api-webui
+   ```bash
+   search-api-webui
+   ```
 
 Open your browser at http://localhost:8889.
 
@@ -47,10 +56,12 @@ Open your browser at http://localhost:8889.
 
 ### Add New Providers
 Edit providers.yaml to add custom API endpoints. The system uses JMESPath to map JSON responses to the UI.
-   ```my_custom_search:
-         url: "https://api.example.com/search"
-         method: "GET"
-         ...
+```yaml
+my_custom_search:
+      url: "https://api.example.com/search"
+      method: "GET"
+      ...
+```
 ## Development
 Backend: Flask (in backend/)
 Frontend: React + Vite (in frontend/)
