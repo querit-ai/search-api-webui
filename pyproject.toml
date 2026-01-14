@@ -26,6 +26,7 @@ dependencies = [
     "requests>=2.25.0",
     "pyyaml>=6.0",
     "jmespath"
+    "querit"
 ]
 
 [project.urls]

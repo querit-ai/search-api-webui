@@ -12,6 +12,9 @@ frontend/package-lock.json
 frontend/.DS_Store
 .DS_Store
 
+# Backend
+backend/static/
+
 # User Configuration
 user_config.json
 
