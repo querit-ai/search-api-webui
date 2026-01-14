@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Frontend / Node
+frontend/node_modules/
+frontend/dist/
+frontend/package-lock.json
+frontend/.DS_Store
+.DS_Store
+
+# User Configuration
+user_config.json
+
+# IDE
+.idea/
+.vscode/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
