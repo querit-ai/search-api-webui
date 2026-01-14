@@ -1,0 +1,30 @@
+querit:
+  url: "https://api.querit.ai/v1/search"
+  method: "POST"
+  headers:
+    "Accept": "application/json"
+    "Authorization": "Bearer {api_key}"
+    "Content-Type": "application/json"
+  payload:
+    query: "{query}"
+  response_mapping:
+    root_path: "results.result"
+    fields:
+      title: "title"
+      url: "url"
+      snippet: "snippet"
+
+ydc_search:
+  url: "https://ydc-index.io/v1/search"
+  method: "GET"
+  headers:
+    X-API-Key: "{api_key}"
+  params:
+    query: "{query}"
+  payload: {}
+  response_mapping:
+    root_path: "results.web" 
+    fields:
+      title: "title"
+      url: "url"
+      snippet: "snippets[0] || description"
