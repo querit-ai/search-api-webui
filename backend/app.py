@@ -2,7 +2,7 @@ import json
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from backend.provider import load_providers
+from backend.providers import load_providers
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
