@@ -4,27 +4,41 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from backend.providers import load_providers
 
+CURRENT_DIR = Path(__file__).resolve().parent
+STATIC_FOLDER = CURRENT_DIR / 'static'
+
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PROVIDERS_YAML = os.path.join(BASE_DIR, 'providers.yaml')
-USER_CONFIG_JSON = os.path.join(BASE_DIR, 'user_config.json')
+PROVIDERS_YAML = CURRENT_DIR / 'providers.yaml'
+USER_CONFIG_DIR = Path.home() / '.search-api-webui'
+USER_CONFIG_JSON = USER_CONFIG_DIR / 'config.json'
 
-provider_map = load_providers(PROVIDERS_YAML)
+if not USER_CONFIG_DIR.exists():
+    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+if PROVIDERS_YAML.exists():
+    provider_map = load_providers(str(PROVIDERS_YAML))
+else:
+    print(f"Error: Configuration file not found at {PROVIDERS_YAML}")
+    provider_map = {}
 
 def get_stored_config():
-    if not os.path.exists(USER_CONFIG_JSON):
+    if not USER_CONFIG_JSON.exists():
         return {}
     try:
-        with open(USER_CONFIG_JSON, 'r') as f:
+        with open(USER_CONFIG_JSON, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except:
+    except Exception as e:
+        print(f"Error reading config: {e}")
         return {}
 
 def save_stored_config(config_dict):
-    with open(USER_CONFIG_JSON, 'w') as f:
-        json.dump(config_dict, f, indent=2)
+    try:
+        with open(USER_CONFIG_JSON, 'w', encoding='utf-8') as f:
+            json.dump(config_dict, f, indent=2)
+    except Exception as e:
+        print(f"Error saving config: {e}")
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers_list():
@@ -127,10 +141,10 @@ def search_api():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
+    if path != "" and (STATIC_FOLDER / path).exists():
+        return send_from_directory(str(STATIC_FOLDER), path)
     else:
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(str(STATIC_FOLDER), 'index.html')
 
 def main():
     import argparse
@@ -138,7 +152,11 @@ def main():
     parser.add_argument("--port", type=int, default=8889, help="Port to run the server on")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to run the server on")
     args = parser.parse_args()
-    
+
+    print(f"Starting Search API WebUI...")
+    print(f"  - Config Storage: {USER_CONFIG_JSON}")
+    print(f"  - Serving on: http://{args.host}:{args.port}")
+
     app.run(host=args.host, port=args.port)
 
 if __name__ == "__main__":
