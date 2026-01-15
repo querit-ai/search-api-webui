@@ -26,7 +26,7 @@ def load_providers(file_path='providers.yaml'):
         provider_type = conf.get('type', 'generic')
 
         # Instantiate specific provider based on type or name
-        if name == 'querit' or provider_type == 'querit_sdk':
+        if provider_type == 'querit_sdk':
             providers[name] = QueritSdkProvider(conf)
         else:
             providers[name] = GenericProvider(conf)
