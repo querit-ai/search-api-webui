@@ -2,68 +2,97 @@
 
 A lightweight, local WebUI for testing and visualizing Search APIs (Querit, YDC, etc.).
 
+(images)
+
 ## Features
 
-- 🔍 **Search**: Support for Querit, You.com, and generic Search APIs via configuration.
-- ⚡ **Performance Metrics**: Real-time display of request latency and payload size.
-- 🎨 **Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
-- 🛠️ **Configurable**: Easy-to-edit `providers.yaml` to add or modify search providers.
-- 🔒 **Secure**: API Keys are stored locally in `user_config.json` and never committed.
+**Search**: Support for Querit, You.com, and generic Search APIs via configuration.
+**Performance Metrics**: Real-time display of request latency and payload size.
+**Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
+**Configurable**: Easy-to-edit providers.yaml to add or modify search providers.
+**Secure**: API Keys are stored locally in user_config.json and never committed.
+## Installation
 
-## Quick Start
+Use this method if you just want to run the tool without modifying the code.
 
 ### Prerequisites
 
-- Python 3.7+
-- Node.js & npm (for building the frontend)
+Python 3.7+
+### Install via Pip
 
-### Installation
+```
+pip install search-api-webui
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/querit-ai/search-api-webui.git
-   cd search-api-webui
-   ```
-2. **Build Frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm run build
-   cd ..
-   ```
-3. **Install Backend**
-   ```bash
-   pip install -e .
-   ```
+### Run the Server
 
-### Usage
-**Run the server:**
-   ```bash
-   python -m backend.app
-   ```
-Or if you installed via pip:
-   ```bash
-   search-api-webui
-   ```
+```
+search-api-webui
+```
 
 Open your browser at http://localhost:8889.
 
-## Configuration
-### Add API Keys
-1. Open the WebUI settings page.
-2. Enter your API Key for the selected provider (e.g., Querit).
-3. Keys are saved locally in user_config.json.
-
-### Add New Providers
-Edit providers.yaml to add custom API endpoints. The system uses JMESPath to map JSON responses to the UI.
-```yaml
-my_custom_search:
-      url: "https://api.example.com/search"
-      method: "GET"
-      ...
-```
 ## Development
-Backend: Flask (in backend/)
-Frontend: React + Vite (in frontend/)
+
+Use this method if you want to contribute to the code or build from source.
+
+### Prerequisites
+
+Python 3.7+
+Node.js & npm (for building the frontend)
+### Setup Steps
+
+**Clone the repository**
+```
+git clone https://github.com/querit-ai/search-api-webui.git
+cd search-api-webui
+```
+
+**Build Frontend**
+```
+cd frontend
+npm install
+npm run build
+cd …
+```
+
+**Install Backend (Editable Mode)**
+```
+pip install -e .
+```
+
+**Run the Server**
+```
+python -m backend.app
+```
+
+## Configuration
+
+### Add API Keys
+
+Open the WebUI settings page (click the gear icon).
+Enter your API Key for the selected provider (e.g., Querit).
+Keys are saved locally in user_config.json.
+### Add New Providers
+
+Edit providers.yaml in the root directory to add custom API endpoints. The system uses JMESPath to map JSON responses to the UI.
+
+```
+my_custom_search:
+url: “https://api.example.com/search”
+method: “GET”
+headers:
+Authorization: “Bearer {api_key}”
+params:
+q: “{query}”
+response_mapping:
+root_path: “data.items”
+fields:
+title: “title”
+url: “link”
+snippet: “snippet”
+```
+
 ## License
+
 MIT License. See LICENSE for details.
