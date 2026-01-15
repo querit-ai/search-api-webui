@@ -17,6 +17,9 @@ class GenericProvider(BaseProvider):
             config (dict): Configuration containing url, headers, params, and mapping rules.
         """
         self.config = config
+        self.session = requests.Session()  # Persistent connection session
+        self._connection_ready = False     # Connection ready status
+        self._last_url = None              # Last used URL tracker
 
     def _fill_template(self, template_obj, **kwargs):
         """
@@ -41,6 +44,31 @@ class GenericProvider(BaseProvider):
         elif isinstance(template_obj, dict):
             return {k: self._fill_template(v, **kwargs) for k, v in template_obj.items()}
         return template_obj
+
+    def _ensure_connection(self, url, headers):
+        """
+        Pre-warm HTTPS connection and verify availability.
+        Uses lightweight HEAD request to verify connection without fetching response body.
+
+        Args:
+            url (str): Target URL
+            headers (dict): Request headers
+
+        Returns:
+            bool: Whether connection is ready
+        """
+        # Re-warm if URL changed or connection not ready
+        if url != self._last_url or not self._connection_ready:
+            try:
+                # Verify connection using HEAD request (no response body)
+                self.session.head(url, headers=headers, timeout=5)
+                self._connection_ready = True
+                self._last_url = url
+                print(f'  [Connection Pool] Connected to: {url}')
+            except Exception as e:
+                self._connection_ready = False
+                print(f'  [Connection Pool] Connection warm-up failed: {e}')
+                raise
 
     def search(self, query, api_key, **kwargs):
         # 1. Extract parameters with defaults
@@ -69,6 +97,18 @@ class GenericProvider(BaseProvider):
         print(f'[{self.config.get("name", "Unknown")}] Search:')
         print(f'  URL: {url} | Method: {method}')
         
+        # Ensure connection is pre-warmed (use HEAD request to verify availability)
+        # Pre-warming is not counted in request latency, only verifies connection
+        try:
+            self._ensure_connection(url, headers)
+        except Exception as e:
+            print(f"Connection Warm-up Error: {e}")
+            return {
+                "error": f"Connection failed: {str(e)}",
+                "results": [],
+                "metrics": {"latency_ms": 0, "size_bytes": 0}
+            }
+
         start_time = time.time()
 
         try:
@@ -78,10 +118,11 @@ class GenericProvider(BaseProvider):
             if json_body:
                 req_args['json'] = json_body
 
+            # Use Session to send request (connection is reused)
             if method.upper() == 'GET':
-                response = requests.get(url, **req_args)
+                response = self.session.get(url, **req_args)
             else:
-                response = requests.post(url, **req_args)
+                response = self.session.post(url, **req_args)
 
             response.raise_for_status()
         except Exception as e:

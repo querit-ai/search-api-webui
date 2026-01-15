@@ -1,7 +1,23 @@
-querit:
-  type: "querit_sdk"
+querit_sdk:
+  type: "generic"
   description: "Official Querit Search via Python SDK"
   default_limit: 10
+
+querit:
+  url: "https://api.querit.ai/v1/search"
+  method: "POST"
+  headers:
+    "Accept": "application/json"
+    "Authorization": "Bearer {api_key}"
+    "Content-Type": "application/json"
+  payload:
+    query: "{query}"
+  response_mapping:
+    root_path: "results.result"
+    fields:
+      title: "title"
+      url: "url"
+      snippet: "snippet"
 
 ydc_search:
   url: "https://ydc-index.io/v1/search"
