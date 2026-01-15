@@ -56,14 +56,14 @@ npm run build
 cd …
 ```
 
-**Install Backend (Editable Mode)**
+**Install search-api-webui (Editable Mode)**
 ```
 pip install -e .
 ```
 
 **Run the Server**
 ```
-python -m backend.app
+python -m search_api_webui.app
 ```
 
 ## Configuration

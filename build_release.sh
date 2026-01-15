@@ -7,9 +7,8 @@ echo "Starting build process..."
 
 # 2. Clean previous build artifacts
 echo "Cleaning old files..."
+rm -rf frontend/dist
 rm -rf dist
-rm -rf backend/static
-mkdir -p backend/static
 
 # 3. Build frontend
 echo "Building React frontend..."
@@ -18,18 +17,16 @@ npm install
 npm run build
 cd ..
 
-# The frontend vite.config.js should be configured to output to ../backend/static
-# If not, we would need to move manually, but your config has outDir: '../backend/static', so no action needed.
-
-# Check if frontend build output exists
-if [ ! -f "backend/static/index.html" ]; then
+if [ ! -f "frontend/dist/index.html" ]; then
     echo "Error: Frontend build failed, index.html not found"
     exit 1
 fi
 
-# 4. Build Python Wheel
-echo "Building Python Wheel..."
-python3 -m build
+# 4. Build Python Artifacts (Modified)
+echo "Building Python Artifacts..."
+
+python3 -m build --wheel
+python3 -m build --sdist
 
 echo "Build complete!"
 echo "Artifacts are in the dist/ directory"

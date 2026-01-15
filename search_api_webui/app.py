@@ -4,10 +4,15 @@ import webbrowser
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from backend.providers import load_providers
+from search_api_webui.providers import load_providers
 
 CURRENT_DIR = Path(__file__).resolve().parent
+
 STATIC_FOLDER = CURRENT_DIR / 'static'
+if not STATIC_FOLDER.exists():
+    DEV_FRONTEND_DIST = CURRENT_DIR.parent / 'frontend' / 'dist'
+    if DEV_FRONTEND_DIST.exists():
+        STATIC_FOLDER = DEV_FRONTEND_DIST
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
