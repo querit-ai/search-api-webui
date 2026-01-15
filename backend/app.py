@@ -1,5 +1,6 @@
 import json
 import os
+import webbrowser
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -151,15 +152,18 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Search API WebUI")
     parser.add_argument("--port", type=int, default=8889, help="Port to run the server on")
-    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to run the server on")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run the server on")
     args = parser.parse_args()
 
+    url = f"http://{args.host}:{args.port}"
     print(f"Starting Search API WebUI...")
     print(f"  - Config Storage: {USER_CONFIG_JSON}")
-    print(f"  - Serving on: http://{args.host}:{args.port}")
+    print(f"  - Serving on: {url}")
+
+    # Open browser automatically after a short delay to ensure server is ready
+    webbrowser.open(url)
 
     app.run(host=args.host, port=args.port)
 
 if __name__ == "__main__":
     main()
-
