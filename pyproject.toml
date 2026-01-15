@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "search-api-webui"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Search API WebUI for Querit, You, and other search providers."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -43,7 +43,6 @@ packages = ["backend"]
 [tool.hatch.build.targets.sdist]
 include = [
     "backend",
-    "providers.yaml",
     "README.md",
     "LICENSE"
 ]
@@ -56,4 +55,3 @@ exclude = [
 
 [tool.hatch.build.targets.wheel.force-include]
 "backend/static" = "backend/static"
-"providers.yaml" = "backend/providers.yaml"
