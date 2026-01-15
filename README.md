@@ -6,11 +6,11 @@ A lightweight, local WebUI for testing and visualizing Search APIs (Querit, YDC,
 
 ## Features
 
-**Search**: Support for Querit, You.com, and generic Search APIs via configuration.
-**Performance Metrics**: Real-time display of request latency and payload size.
-**Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
-**Configurable**: Easy-to-edit providers.yaml to add or modify search providers.
-**Secure**: API Keys are stored locally in user_config.json and never committed.
+* **Search**: Support for Querit, You.com, and generic Search APIs via configuration.
+* **Performance Metrics**: Real-time display of request latency and payload size.
+* **Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
+* **Configurable**: Easy-to-edit providers.yaml to add or modify search providers.
+* **Secure**: API Keys are stored locally in your $HOME folder.
 ## Installation
 
 Use this method if you just want to run the tool without modifying the code.
