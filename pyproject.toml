@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "MIT" }
 authors = [
-    { name = "Search API WebUI Team" }
+    { name = "querit.ai" }
 ]
 keywords = ["search", "api", "webui", "querit", "llm", "tool"]
 classifiers = [

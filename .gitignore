@@ -19,8 +19,11 @@ backend/static/
 user_config.json
 
 # IDE
-.idea/
-.vscode/
+.id*/
+.vs*/
+.co*/
+.tr*/
+.hi*/
 
 # Build artifacts
 build/
