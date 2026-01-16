@@ -30,25 +30,26 @@ pip install search-api-webui
 search-api-webui
 ```
 
-Open your browser at http://localhost:8889.
-
 ## Development
 
 Use this method if you want to contribute to the code or build from source.
 
 ### Prerequisites
 
-Python 3.7+
-Node.js & npm (for building the frontend)
+* Python 3.7+
+* Node.js & npm (for building the frontend)
+
 ### Setup Steps
 
 **Clone the repository**
+
 ```
 git clone https://github.com/querit-ai/search-api-webui.git
 cd search-api-webui
 ```
 
 **Build Frontend**
+
 ```
 cd frontend
 npm install
@@ -57,11 +58,13 @@ cd …
 ```
 
 **Install search-api-webui (Editable Mode)**
+
 ```
 pip install -e .
 ```
 
 **Run the Server**
+
 ```
 python -m search_api_webui.app
 ```
@@ -70,9 +73,8 @@ python -m search_api_webui.app
 
 ### Add API Keys
 
-Open the WebUI settings page (click the gear icon).
-Enter your API Key for the selected provider (e.g., Querit).
-Keys are saved locally in user_config.json.
+Open the WebUI settings page (click the gear icon). Enter your API Key for the selected provider (e.g., Querit). Keys are saved locally in $HOME/.search-api-webui/config.json.
+
 ### Add New Providers
 
 Edit providers.yaml in the root directory to add custom API endpoints. The system uses JMESPath to map JSON responses to the UI.
