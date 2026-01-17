@@ -26,19 +26,19 @@ import {
     Search,
     Settings,
     Loader2,
-    ExternalLink,
     ChevronDown,
-    ChevronUp,
     Clock,
     Database,
     AlertCircle,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Swords // 新增图标
 } from 'lucide-react';
 import { Button } from './components/Button';
 import { Input } from './components/Input';
 import { Card } from './components/Card';
 import { Badge } from './components/Badge';
+import { ResultItem } from './components/ResultItem';
 import { cn } from './lib/utils';
 
 function SearchPage() {
@@ -79,6 +79,10 @@ function SearchPage() {
 
     const handleConfigClick = () => {
         navigate('/config');
+    };
+
+    const handleArenaClick = () => {
+        navigate('/arena');
     };
 
     const handleProviderChange = (e) => {
@@ -128,7 +132,6 @@ function SearchPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
             <div className="max-w-4xl mx-auto space-y-8">
-                {/* Header */}
                 <div className="text-center space-y-2">
                     <h1
                         className={cn(
@@ -183,7 +186,7 @@ function SearchPage() {
                                 </div>
                             </div>
 
-                            {/* Right: Status Pill + Config Button */}
+                            {/* Right: Status Pill + Arena + Config Button */}
                             <div className="flex items-center gap-3">
                                 {/* Status Pill */}
                                 <div
@@ -202,6 +205,18 @@ function SearchPage() {
                                     )}
                                     {hasKey ? 'Ready' : 'No API Key'}
                                 </div>
+
+                                {/* Arena Button */}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handleArenaClick}
+                                    title="Enter API Arena"
+                                    className="h-9 w-9 border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                                >
+                                    <Swords className="w-4 h-4" />
+                                </Button>
 
                                 {/* Config Button */}
                                 <Button
@@ -317,89 +332,6 @@ function SearchPage() {
                 )}
             </div>
         </div>
-    );
-}
-
-// Single Result Component
-function ResultItem({ item }) {
-    const [expanded, setExpanded] = useState(false);
-    const snippet = item.snippet || '';
-    const LIMIT = 120;
-    const shouldTruncate = snippet.length > LIMIT;
-
-    const displaySnippet =
-        shouldTruncate && !expanded
-            ? snippet.substring(0, LIMIT) + '...'
-            : snippet;
-
-    const toggleExpand = () => {
-        setExpanded(!expanded);
-    };
-
-    return (
-        <Card
-            className={cn(
-                'p-5 hover:shadow-md transition-shadow',
-                'duration-200 border-gray-100'
-            )}
-        >
-            <div className="space-y-2">
-                <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group block"
-                >
-                    <h3
-                        className={cn(
-                            'text-lg font-semibold text-blue-600',
-                            'group-hover:underline group-hover:text-blue-700',
-                            'flex items-start gap-2 leading-snug'
-                        )}
-                    >
-                        {item.title || 'Untitled'}
-                        <ExternalLink
-                            className={cn(
-                                'w-4 h-4 opacity-0 group-hover:opacity-50',
-                                'transition-opacity mt-1'
-                            )}
-                        />
-                    </h3>
-                    <p
-                        className={cn(
-                            'text-xs text-green-700 break-all',
-                            'font-mono mt-1 opacity-80'
-                        )}
-                    >
-                        {item.url}
-                    </p>
-                </a>
-
-                <div className="text-sm text-gray-700 leading-relaxed">
-                    {displaySnippet}
-                    {shouldTruncate && (
-                        <button
-                            onClick={toggleExpand}
-                            className={cn(
-                                'ml-2 text-blue-600 hover:text-blue-800',
-                                'text-xs font-medium',
-                                'inline-flex items-center gap-0.5'
-                            )}
-                        >
-                            {expanded ? (
-                                <>
-                                    Collapse <ChevronUp className="w-3 h-3" />
-                                </>
-                            ) : (
-                                <>
-                                    Expand <ChevronDown className="w-3 h-3" />
-                                </>
-                            )}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </Card>
     );
 }
 
