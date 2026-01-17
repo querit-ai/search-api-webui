@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "search-api-webui"
-version = "0.1.6"
+version = "0.1.7"
 description = "A Search API WebUI for Querit, You, and other search providers."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.4"
 license = { text = "MIT" }
 authors = [
     { name = "querit.ai" }
@@ -21,11 +21,11 @@ classifiers = [
 ]
 
 dependencies = [
-    "flask>=2.0.0",
-    "flask-cors",
-    "requests>=2.25.0",
-    "pyyaml>=6.0",
-    "jmespath",
+    "flask>=1.1.0",
+    "flask-cors>=3.0.0",
+    "requests>=2.22.0",
+    "pyyaml>=5.3",
+    "jmespath>=0.10.0",
     "querit"
 ]
 
