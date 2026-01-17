@@ -1,12 +1,13 @@
 # Search API WebUI
 
-A lightweight, local WebUI for testing and visualizing Search APIs (Querit, You, etc.).
+A lightweight, local WebUI for testing, comparing, and visualizing Search APIs (Querit, You, etc.).
 
 (images)
 
 ## Features
 
 * **Search**: Support for [Querit.ai](https://www.querit.ai/en/docs/reference/post), [You.com](https://docs.you.com/api-reference/search/v1-search), and generic Search APIs via configuration.
+* **API Arena**: Compare two search providers side-by-side to benchmark latency, payload size, and result relevance.
 * **Performance Metrics**: Real-time display of request latency and payload size.
 * **Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
 * **Configurable**: Easy-to-edit providers.yaml to add or modify search providers.

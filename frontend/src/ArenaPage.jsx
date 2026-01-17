@@ -188,9 +188,6 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
         <div className="flex flex-col gap-4 h-full">
             {/* Selector Card */}
             <Card className="p-4 border-t-4 border-t-transparent data-[side=Left]:border-t-blue-500 data-[side=Right]:border-t-orange-500" data-side={side}>
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Contender {side}</span>
-                </div>
                 <select
                     className="w-full h-10 rounded-md border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={selected}
@@ -217,7 +214,7 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div 
                                     className={cn("h-full rounded-full transition-all duration-500", isWinnerLatency ? "bg-green-500" : "bg-gray-400")}
-                                    style={{ width: '100%' }} // Simplified visualization
+                                    style={{ width: '100%' }}
                                 />
                             </div>
                         </div>
