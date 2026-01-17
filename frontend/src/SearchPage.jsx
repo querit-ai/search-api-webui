@@ -367,7 +367,7 @@ function ResultItem({ item }) {
                     </h3>
                     <p
                         className={cn(
-                            'text-xs text-green-700 truncate',
+                            'text-xs text-green-700 break-all',
                             'font-mono mt-1 opacity-80'
                         )}
                     >
