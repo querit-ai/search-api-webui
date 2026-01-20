@@ -20,6 +20,7 @@
 
 from abc import ABC, abstractmethod
 
+
 class BaseProvider(ABC):
     """
     Abstract base class for all search providers.

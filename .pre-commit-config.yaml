@@ -1,0 +1,33 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+
+  # Python hooks (Ruff replaces Black, flake8, isort)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        files: ^search_api_webui/
+        args: [--fix, --exit-non-zero-on-fix, --config=search_api_webui/ruff.toml]
+
+  # JavaScript/TypeScript hooks
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.2.0
+    hooks:
+      - id: eslint
+        files: ^frontend/.*\.(js|jsx)$
+        additional_dependencies:
+          - eslint@^9
+          - eslint-plugin-react-hooks@^4
+          - eslint-plugin-react-refresh@^0
+          - globals@^15
+        args: ['--fix', '--config=frontend/eslint.config.js']

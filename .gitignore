@@ -24,6 +24,7 @@ user_config.json
 .co*/
 .tr*/
 .hi*/
+.ba*/
 
 # Build artifacts
 build/

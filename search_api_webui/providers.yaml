@@ -12,7 +12,7 @@ you:
     query: "{query}"
   payload: {}
   response_mapping:
-    root_path: "results.web" 
+    root_path: "results.web"
     fields:
       title: "title"
       url: "url"

@@ -41,13 +41,13 @@ import { cn } from './lib/utils';
 function ArenaPage() {
     const navigate = useNavigate();
     const [providers, setProviders] = useState([]);
-    
+
     // Arena State
     const [leftProvider, setLeftProvider] = useState('');
     const [rightProvider, setRightProvider] = useState('');
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    
+
     // Results State
     const [leftResult, setLeftResult] = useState(null);
     const [rightResult, setRightResult] = useState(null);
@@ -79,12 +79,12 @@ function ArenaPage() {
             });
             const data = await res.json();
             const end = performance.now();
-            
+
             // Client-side measured latency fallback if server doesn't provide it
             const clientLatency = Math.round(end - start);
-            
+
             if (data.error) return { error: data.error };
-            
+
             return {
                 results: data.results || [],
                 metrics: {
@@ -130,10 +130,10 @@ function ArenaPage() {
                             API Arena
                         </h1>
                     </div>
-                    
+
                     {/* Search Bar in Header */}
                     <form onSubmit={handleCompare} className="flex-1 max-w-2xl mx-4 flex gap-2">
-                        <Input 
+                        <Input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Enter a query to compare providers..."
@@ -148,9 +148,9 @@ function ArenaPage() {
 
             {/* Main Content */}
             <div className="flex-1 max-w-7xl mx-auto w-full p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Left Column */}
-                <ArenaColumn 
+                <ArenaColumn
                     side="Left"
                     providers={providers}
                     selected={leftProvider}
@@ -161,7 +161,7 @@ function ArenaPage() {
                 />
 
                 {/* Right Column */}
-                <ArenaColumn 
+                <ArenaColumn
                     side="Right"
                     providers={providers}
                     selected={rightProvider}
@@ -178,10 +178,10 @@ function ArenaPage() {
 // Sub-component for each side of the arena
 function ArenaColumn({ side, providers, selected, onSelect, result, opponentResult, loading }) {
     // Calculate comparison stats
-    const isWinnerLatency = result?.metrics && opponentResult?.metrics && 
+    const isWinnerLatency = result?.metrics && opponentResult?.metrics &&
         (result.metrics.latency_ms < opponentResult.metrics.latency_ms);
-    
-    const isWinnerSize = result?.metrics && opponentResult?.metrics && 
+
+    const isWinnerSize = result?.metrics && opponentResult?.metrics &&
         (result.metrics.size_bytes > opponentResult.metrics.size_bytes);
 
     return (
@@ -212,7 +212,7 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                                 </span>
                             </div>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                     className={cn("h-full rounded-full transition-all duration-500", isWinnerLatency ? "bg-green-500" : "bg-gray-400")}
                                     style={{ width: '100%' }}
                                 />

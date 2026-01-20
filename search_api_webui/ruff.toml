@@ -1,0 +1,27 @@
+# Ruff configuration
+# Ruff replaces Black, flake8, and isort
+
+line-length = 120
+target-version = "py37"
+
+[format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = false
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "COM",    # flake8-commas (trailing commas)
+]
+ignore = [
+    "E203",   # whitespace before ':' - conflicts with Black
+]

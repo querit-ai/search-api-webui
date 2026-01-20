@@ -21,10 +21,10 @@
   def process_data(self, data):
       """
       Process input data and return normalized result.
-      
+
       Args:
           data: Raw input data dictionary
-          
+
       Returns:
           Normalized data dict with default values applied
       """
@@ -83,6 +83,7 @@
 ## General Rules
 
 ### Code Style
+- Use **single quotes** `'` for all Python strings
 - Remove trailing whitespace
 - Add newline at end of file
 - Keep files focused (single responsibility)
@@ -99,17 +100,23 @@
 
 ## Tooling
 
-### Pre-commit Hooks (Recommended)
+### Pre-commit Hooks
 ```bash
-# Install pre-commit
-pip install pre-commit
-pre-commit install
+pre-commit run --all-files    # Run all checks manually
+pre-commit install                 # Install git hooks
 ```
 
-### Python Linting
+### Python Linting & Formatting (Ruff)
 ```bash
-pip install flake8
-flake8 backend/ --max-line-length=100
+# Format and lint Python files
+ruff format search_api_webui/
+ruff check search_api_webui/ --fix
+```
+
+### JavaScript/JSX Linting
+```bash
+# In frontend/ directory
+cd frontend && npx eslint . --fix
 ```
 
 ### JavaScript Formatting

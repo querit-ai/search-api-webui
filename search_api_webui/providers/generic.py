@@ -19,9 +19,12 @@
 # DEALINGS IN THE SOFTWARE.
 
 import time
-import requests
+
 import jmespath
+import requests
+
 from .base import BaseProvider
+
 
 class GenericProvider(BaseProvider):
     """
@@ -32,24 +35,24 @@ class GenericProvider(BaseProvider):
     def __init__(self, config):
         """
         Initialize the provider with a configuration dictionary.
-        
+
         Args:
             config (dict): Configuration containing url, headers, params, and mapping rules.
         """
         self.config = config
         self.session = requests.Session()  # Persistent connection session
-        self._connection_ready = False     # Connection ready status
-        self._last_url = None              # Last used URL tracker
+        self._connection_ready = False  # Connection ready status
+        self._last_url = None  # Last used URL tracker
 
     def _fill_template(self, template_obj, **kwargs):
         """
-        Recursively replaces placeholders (e.g., {query}) in dictionaries or strings 
+        Recursively replaces placeholders (e.g., {query}) in dictionaries or strings
         with values provided in kwargs.
-        
+
         Args:
             template_obj (dict | str): The structure containing placeholders.
             **kwargs: Key-value pairs to inject into the template.
-            
+
         Returns:
             The structure with placeholders replaced by actual values.
         """
@@ -99,13 +102,13 @@ class GenericProvider(BaseProvider):
         # 2. Determine configuration
         url = custom_url if custom_url else self.config.get('url')
         method = self.config.get('method', 'GET')
-        
+
         # 3. Prepare context for template injection
         context = {
             'query': query,
             'api_key': api_key,
             'limit': limit,
-            'language': language
+            'language': language,
         }
 
         # 4. construct request components
@@ -116,17 +119,17 @@ class GenericProvider(BaseProvider):
         # Logging (Masking sensitive API keys)
         print(f'[{self.config.get("name", "Unknown")}] Search:')
         print(f'  URL: {url} | Method: {method}')
-        
+
         # Ensure connection is pre-warmed (use HEAD request to verify availability)
         # Pre-warming is not counted in request latency, only verifies connection
         try:
             self._ensure_connection(url, headers)
         except Exception as e:
-            print(f"Connection Warm-up Error: {e}")
+            print(f'Connection Warm-up Error: {e}')
             return {
-                "error": f"Connection failed: {str(e)}",
-                "results": [],
-                "metrics": {"latency_ms": 0, "size_bytes": 0}
+                'error': f'Connection failed: {str(e)}',
+                'results': [],
+                'metrics': {'latency_ms': 0, 'size_bytes': 0},
             }
 
         start_time = time.time()
@@ -146,11 +149,11 @@ class GenericProvider(BaseProvider):
 
             response.raise_for_status()
         except Exception as e:
-            print(f"Request Error: {e}")
+            print(f'Request Error: {e}')
             return {
-                "error": str(e),
-                "results": [],
-                "metrics": {"latency_ms": 0, "size_bytes": 0}
+                'error': str(e),
+                'results': [],
+                'metrics': {'latency_ms': 0, 'size_bytes': 0},
             }
 
         end_time = time.time()
@@ -159,7 +162,7 @@ class GenericProvider(BaseProvider):
         try:
             raw_data = response.json()
         except Exception as e:
-            print(f"JSON Parse Error: {e}")
+            print(f'JSON Parse Error: {e}')
             raw_data = {}
 
         mapping = self.config.get('response_mapping', {})
@@ -174,13 +177,13 @@ class GenericProvider(BaseProvider):
             # Map specific fields (title, url, etc.) based on config
             for std_key, source_path in field_map.items():
                 val = jmespath.search(source_path, item)
-                entry[std_key] = val if val else ""
+                entry[std_key] = val if val else ''
             normalized_results.append(entry)
 
         return {
-            "results": normalized_results,
-            "metrics": {
-                "latency_ms": round((end_time - start_time) * 1000, 2),
-                "size_bytes": len(response.content)
-            }
+            'results': normalized_results,
+            'metrics': {
+                'latency_ms': round((end_time - start_time) * 1000, 2),
+                'size_bytes': len(response.content),
+            },
         }

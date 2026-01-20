@@ -19,25 +19,28 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+
 import yaml
+
 from .generic import GenericProvider
 from .querit import QueritSdkProvider
+
 
 def load_providers(file_path='providers.yaml'):
     """
     Parses the YAML configuration file and instantiates the appropriate provider classes.
-    
+
     Args:
         file_path (str): Path to the providers configuration file.
-        
+
     Returns:
         dict: A dictionary mapping provider names to their initialized instances.
     """
     if not os.path.exists(file_path):
-        print(f"Warning: Provider config file not found at {file_path}")
+        print(f'Warning: Provider config file not found at {file_path}')
         return {}
-        
-    with open(file_path, 'r', encoding='utf-8') as f:
+
+    with open(file_path, encoding='utf-8') as f:
         configs = yaml.safe_load(f)
 
     providers = {}

@@ -19,14 +19,15 @@
 # DEALINGS IN THE SOFTWARE.
 
 import json
-import os
 import socket
 import threading
 import time
 import webbrowser
 from pathlib import Path
-from flask import Flask, request, jsonify, send_from_directory
+
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+
 from search_api_webui.providers import load_providers
 
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -53,15 +54,17 @@ else:
     print(f'Error: Configuration file not found at {PROVIDERS_YAML}')
     provider_map = {}
 
+
 def get_stored_config():
     if not USER_CONFIG_JSON.exists():
         return {}
     try:
-        with open(USER_CONFIG_JSON, 'r', encoding='utf-8') as f:
+        with open(USER_CONFIG_JSON, encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
         print(f'Error reading config: {e}')
         return {}
+
 
 def save_stored_config(config_dict):
     try:
@@ -69,6 +72,7 @@ def save_stored_config(config_dict):
             json.dump(config_dict, f, indent=2)
     except Exception as e:
         print(f'Error saving config: {e}')
+
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers_list():
@@ -79,23 +83,26 @@ def get_providers_list():
         config_details = provider_instance.config
 
         user_conf = stored_config.get(name, {})
-        
+
         if isinstance(user_conf, str):
             user_conf = {'api_key': user_conf}
 
         has_key = bool(user_conf.get('api_key'))
 
-        providers_info.append({
-            'name': name,
-            'has_key': has_key,
-            'details': config_details,
-            'user_settings': {
-                'api_url': user_conf.get('api_url', ''),
-                'limit': user_conf.get('limit', '10'),
-                'language': user_conf.get('language', 'en-US')
-            }
-        })
+        providers_info.append(
+            {
+                'name': name,
+                'has_key': has_key,
+                'details': config_details,
+                'user_settings': {
+                    'api_url': user_conf.get('api_url', ''),
+                    'limit': user_conf.get('limit', '10'),
+                    'language': user_conf.get('language', 'en-US'),
+                },
+            },
+        )
     return jsonify(providers_info)
+
 
 @app.route('/api/config', methods=['POST'])
 def update_config():
@@ -134,6 +141,7 @@ def update_config():
     save_stored_config(all_config)
     return jsonify({'status': 'success'})
 
+
 @app.route('/api/search', methods=['POST'])
 def search_api():
     data = request.json
@@ -152,7 +160,10 @@ def search_api():
         api_key = provider_config.get('api_key')
 
     if not api_key:
-        return jsonify({'error': f'API Key for {provider_name} is missing. Please configure it.'}), 401
+        return (
+            jsonify({'error': f'API Key for {provider_name} is missing. Please configure it.'}),
+            401,
+        )
 
     provider = provider_map.get(provider_name)
     if not provider:
@@ -161,11 +172,12 @@ def search_api():
     search_kwargs = {
         'api_url': provider_config.get('api_url'),
         'limit': provider_config.get('limit'),
-        'language': provider_config.get('language')
+        'language': provider_config.get('language'),
     }
 
     result = provider.search(query, api_key, **search_kwargs)
     return jsonify(result)
+
 
 # Host React Frontend
 @app.route('/', defaults={'path': ''})
@@ -175,6 +187,7 @@ def serve(path):
         return send_from_directory(str(STATIC_FOLDER), path)
     else:
         return send_from_directory(str(STATIC_FOLDER), 'index.html')
+
 
 def wait_for_server_ready(host, port, url):
     start_time = time.time()
@@ -189,15 +202,17 @@ def wait_for_server_ready(host, port, url):
 
     print('Error: Server took too long to start. Browser not opened.')
 
+
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description='Search API WebUI')
     parser.add_argument('--port', type=int, default=8889, help='Port to run the server on')
     parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to run the server on')
     args = parser.parse_args()
 
     url = f'http://{args.host}:{args.port}'
-    print(f'St arting Search API WebUI...')
+    print('Starting Search API WebUI...')
     print(f'  - Config Storage: {USER_CONFIG_JSON}')
     print(f'  - Serving on: {url}')
 
@@ -205,6 +220,7 @@ def main():
     threading.Thread(target=wait_for_server_ready, args=(args.host, args.port, url), daemon=True).start()
 
     app.run(host=args.host, port=args.port)
+
 
 if __name__ == '__main__':
     main()
