@@ -20,6 +20,9 @@
 
 import json
 import os
+import socket
+import threading
+import time
 import webbrowser
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
@@ -47,7 +50,7 @@ if not USER_CONFIG_DIR.exists():
 if PROVIDERS_YAML.exists():
     provider_map = load_providers(str(PROVIDERS_YAML))
 else:
-    print(f"Error: Configuration file not found at {PROVIDERS_YAML}")
+    print(f'Error: Configuration file not found at {PROVIDERS_YAML}')
     provider_map = {}
 
 def get_stored_config():
@@ -57,7 +60,7 @@ def get_stored_config():
         with open(USER_CONFIG_JSON, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"Error reading config: {e}")
+        print(f'Error reading config: {e}')
         return {}
 
 def save_stored_config(config_dict):
@@ -65,7 +68,7 @@ def save_stored_config(config_dict):
         with open(USER_CONFIG_JSON, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=2)
     except Exception as e:
-        print(f"Error saving config: {e}")
+        print(f'Error saving config: {e}')
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers_list():
@@ -83,13 +86,13 @@ def get_providers_list():
         has_key = bool(user_conf.get('api_key'))
 
         providers_info.append({
-            "name": name,
-            "has_key": has_key,
-            "details": config_details,
-            "user_settings": {
-                "api_url": user_conf.get('api_url', ''),
-                "limit": user_conf.get('limit', '10'),
-                "language": user_conf.get('language', 'en-US')
+            'name': name,
+            'has_key': has_key,
+            'details': config_details,
+            'user_settings': {
+                'api_url': user_conf.get('api_url', ''),
+                'limit': user_conf.get('limit', '10'),
+                'language': user_conf.get('language', 'en-US')
             }
         })
     return jsonify(providers_info)
@@ -100,10 +103,10 @@ def update_config():
     provider_name = data.get('provider')
 
     if not provider_name:
-        return jsonify({"error": "Provider name is required"}), 400
+        return jsonify({'error': 'Provider name is required'}), 400
 
     if 'api_key' not in data:
-        return jsonify({"error": "API Key field is missing"}), 400
+        return jsonify({'error': 'API Key field is missing'}), 400
 
     api_key = data.get('api_key')
 
@@ -118,7 +121,7 @@ def update_config():
 
     if not api_key:
         if provider_name in all_config:
-            all_config[provider_name]['api_key'] = ""
+            all_config[provider_name]['api_key'] = ''
     else:
         if provider_name not in all_config:
             all_config[provider_name] = {}
@@ -129,7 +132,7 @@ def update_config():
         all_config[provider_name]['language'] = language
 
     save_stored_config(all_config)
-    return jsonify({"status": "success"})
+    return jsonify({'status': 'success'})
 
 @app.route('/api/search', methods=['POST'])
 def search_api():
@@ -149,11 +152,11 @@ def search_api():
         api_key = provider_config.get('api_key')
 
     if not api_key:
-        return jsonify({"error": f"API Key for {provider_name} is missing. Please configure it."}), 401
+        return jsonify({'error': f'API Key for {provider_name} is missing. Please configure it.'}), 401
 
     provider = provider_map.get(provider_name)
     if not provider:
-        return jsonify({"error": "Provider not found"}), 404
+        return jsonify({'error': 'Provider not found'}), 404
 
     search_kwargs = {
         'api_url': provider_config.get('api_url'),
@@ -168,27 +171,40 @@ def search_api():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and (STATIC_FOLDER / path).exists():
+    if path != '' and (STATIC_FOLDER / path).exists():
         return send_from_directory(str(STATIC_FOLDER), path)
     else:
         return send_from_directory(str(STATIC_FOLDER), 'index.html')
 
+def wait_for_server_ready(host, port, url):
+    start_time = time.time()
+    while time.time() - start_time < 10:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                print(f'Server is ready! Opening browser: {url}')
+                webbrowser.open(url)
+                return
+        except (OSError, ConnectionRefusedError):
+            time.sleep(0.1)
+
+    print('Error: Server took too long to start. Browser not opened.')
+
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Search API WebUI")
-    parser.add_argument("--port", type=int, default=8889, help="Port to run the server on")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run the server on")
+    parser = argparse.ArgumentParser(description='Search API WebUI')
+    parser.add_argument('--port', type=int, default=8889, help='Port to run the server on')
+    parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to run the server on')
     args = parser.parse_args()
 
-    url = f"http://{args.host}:{args.port}"
-    print(f"Starting Search API WebUI...")
-    print(f"  - Config Storage: {USER_CONFIG_JSON}")
-    print(f"  - Serving on: {url}")
+    url = f'http://{args.host}:{args.port}'
+    print(f'St arting Search API WebUI...')
+    print(f'  - Config Storage: {USER_CONFIG_JSON}')
+    print(f'  - Serving on: {url}')
 
-    # Open browser automatically after a short delay to ensure server is ready
-    webbrowser.open(url)
+    # Start a background thread to check server status and open the browser automatically
+    threading.Thread(target=wait_for_server_ready, args=(args.host, args.port, url), daemon=True).start()
 
     app.run(host=args.host, port=args.port)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
