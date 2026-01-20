@@ -132,8 +132,6 @@ class GenericProvider(BaseProvider):
                 'metrics': {'latency_ms': 0, 'size_bytes': 0},
             }
 
-        start_time = time.time()
-
         try:
             req_args = {'headers': headers, 'timeout': 30}
             if params:
@@ -142,10 +140,12 @@ class GenericProvider(BaseProvider):
                 req_args['json'] = json_body
 
             # Use Session to send request (connection is reused)
+            start_time = time.time()
             if method.upper() == 'GET':
                 response = self.session.get(url, **req_args)
             else:
                 response = self.session.post(url, **req_args)
+            end_time = time.time()
 
             response.raise_for_status()
         except Exception as e:
@@ -156,7 +156,7 @@ class GenericProvider(BaseProvider):
                 'metrics': {'latency_ms': 0, 'size_bytes': 0},
             }
 
-        end_time = time.time()
+
 
         # 5. Parse and Normalize Response
         try:
