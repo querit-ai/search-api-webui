@@ -7,7 +7,7 @@ name = "search-api-webui"
 version = "0.1.7"
 description = "A Search API WebUI for testing and comparing Querit, You, and other search providers."
 readme = "README.md"
-requires-python = ">=3.4"
+requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [
     { name = "querit.ai" }
@@ -28,6 +28,10 @@ dependencies = [
     "jmespath>=0.10.0",
     "querit"
 ]
+
+[project.optional-dependencies]
+webview = ["pywebview>=5.0"]
+build = ["pyinstaller>=6.0"]
 
 [project.urls]
 Homepage = "https://github.com/querit-ai/search-api-webui"

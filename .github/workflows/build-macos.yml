@@ -1,0 +1,160 @@
+name: Build macOS DMG
+
+on:
+  push:
+    branches: [main, dmg]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 0.1.7)'
+        required: false
+        default: 'latest'
+
+jobs:
+  build-macos:
+    name: Build macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15  # M1 runner for native arm64 builds
+          - arch: x86_64
+            runner: macos-15-intel  # Intel runner for native x86_64 builds
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cache Python virtual environment
+        uses: actions/cache@v4
+        with:
+          path: venv-macos-build
+          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-python-
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies and build
+        run: |
+          chmod +x scripts/build_macos_app.sh
+          ./scripts/build_macos_app.sh ${{ matrix.arch }}
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Create DMG
+        run: |
+          chmod +x scripts/create_dmg.sh
+          ./scripts/create_dmg.sh ${{ matrix.arch }}
+
+      - name: List built files
+        run: |
+          echo "Files in dist/:"
+          ls -lh dist/
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}
+          path: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload to Release (if tagged)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-universal-build:
+    name: Create Universal DMG (Optional)
+    needs: build-macos
+    runs-on: macos-14
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Download arm64 DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-arm64
+          path: ./artifacts/arm64
+
+      - name: Download x86_64 DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-x86_64
+          path: ./artifacts/x86_64
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts -type f -name "*.dmg"
+
+      - name: Create info comment
+        run: |
+          mkdir -p dist
+          cat > dist/README.txt << 'EOF'
+          Search API WebUI - macOS Distribution
+
+          This release includes separate builds for different architectures:
+          - SearchAPIWebUI-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3) Macs
+          - SearchAPIWebUI-macOS-x86_64.dmg: For Intel Macs
+
+          Please download the appropriate version for your Mac.
+
+          Apple Silicon users should use the arm64 version for best performance.
+          Intel Mac users should use the x86_64 version.
+
+          Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
+          EOF
+
+          echo "Created distribution readme"
+
+      - name: Upload distribution info
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/README.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
