@@ -193,6 +193,11 @@ build_app() {
         exit 1
     fi
 
+    # Apply ad-hoc signature to allow running on user machines
+    # This prevents Gatekeeper from blocking the app with "damaged" message
+    print_msg "$BLUE" "Applying ad-hoc signature..."
+    codesign --force --deep --sign - "$app_path"
+
     print_msg "$GREEN" "App built successfully at: $app_path"
 }
 
