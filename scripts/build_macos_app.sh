@@ -25,6 +25,10 @@ SPEC_FILE="${PROJECT_ROOT}/SearchAPIWebUI.spec"
 
 # Default architecture
 ARCH="${1:-arm64}"  # arm64 or x86_64
+if [[ "$ARCH" != "arm64" && "$ARCH" != "x86_64" ]]; then
+    echo -e "${RED}Error: Unsupported architecture: $ARCH (use arm64 or x86_64)${NC}"
+    exit 1
+fi
 
 # Print colored message
 print_msg() {

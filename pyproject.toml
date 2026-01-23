@@ -7,7 +7,7 @@ name = "search-api-webui"
 version = "0.1.7"
 description = "A Search API WebUI for testing and comparing Querit, You, and other search providers."
 readme = "README.md"
-requires-python = ">=3.4"
+requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [
     { name = "querit.ai" }

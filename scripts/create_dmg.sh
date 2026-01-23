@@ -90,8 +90,12 @@ create_dmg() {
 
     # Mount temporary DMG
     print_msg "$BLUE" "Mounting temporary DMG..."
-    local device=$(hdiutil attach "$TEMP_DMG" -readwrite -noverify -noautoopen -nobrowse | grep "Volumes" | awk '{print $1}')
-    local mount_point="/Volumes/$VOLUME_NAME"
+    local attach_output
+    attach_output=$(hdiutil attach "$TEMP_DMG" -readwrite -noverify -noautoopen -nobrowse)
+    local device
+    device=$(echo "$attach_output" | awk '/\/Volumes\// {print $1; exit}')
+    local mount_point
+    mount_point=$(echo "$attach_output" | grep -o '/Volumes/.*' | head -n1)
 
     print_msg "$GREEN" "Mounted at: $mount_point"
 
