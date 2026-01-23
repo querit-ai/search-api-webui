@@ -23,9 +23,9 @@ jobs:
       matrix:
         include:
           - arch: arm64
-            runner: macos-14  # M1 runner for native arm64 builds
+            runner: macos-15  # M1 runner for native arm64 builds
           - arch: x86_64
-            runner: macos-13  # Intel runner for native x86_64 builds
+            runner: macos-15  # Intel runner for native x86_64 builds
 
     steps:
       - name: Checkout code
