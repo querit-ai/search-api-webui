@@ -123,13 +123,10 @@ build_frontend() {
 
     cd "$FRONTEND_DIR"
 
-    # Check if node_modules exists
-    if [ ! -d "node_modules" ]; then
-        print_msg "$BLUE" "Installing npm dependencies..."
-        npm install
-    else
-        print_msg "$YELLOW" "node_modules exists, skipping npm install..."
-    fi
+    # Always install npm dependencies to ensure platform-specific binaries are correct
+    # This is especially important for rollup which has platform-specific native modules
+    print_msg "$BLUE" "Installing npm dependencies..."
+    npm install
 
     # Build frontend
     print_msg "$BLUE" "Building frontend assets..."
