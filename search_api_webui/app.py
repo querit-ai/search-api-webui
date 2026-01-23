@@ -20,6 +20,7 @@
 
 import json
 import socket
+import sys
 import threading
 import time
 import webbrowser
@@ -30,18 +31,43 @@ from flask_cors import CORS
 
 from search_api_webui.providers import load_providers
 
+try:
+    import webview
+    WEBVIEW_AVAILABLE = True
+except ImportError:
+    WEBVIEW_AVAILABLE = False
+
+
+def get_resource_path(relative_path):
+    '''Get absolute path to resource, works for dev and for PyInstaller.'''
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = Path(sys._MEIPASS)
+    except Exception:
+        base_path = Path(__file__).resolve().parent
+
+    return base_path / relative_path
+
+
 CURRENT_DIR = Path(__file__).resolve().parent
 
-STATIC_FOLDER = CURRENT_DIR / 'static'
-if not STATIC_FOLDER.exists():
-    DEV_FRONTEND_DIST = CURRENT_DIR.parent / 'frontend' / 'dist'
-    if DEV_FRONTEND_DIST.exists():
-        STATIC_FOLDER = DEV_FRONTEND_DIST
+# Handle static folder for both dev and packaged app
+if hasattr(sys, '_MEIPASS'):
+    # Running in PyInstaller bundle
+    STATIC_FOLDER = Path(sys._MEIPASS) / 'static'
+else:
+    # Running in development
+    STATIC_FOLDER = CURRENT_DIR / 'static'
+    if not STATIC_FOLDER.exists():
+        DEV_FRONTEND_DIST = CURRENT_DIR.parent / 'frontend' / 'dist'
+        if DEV_FRONTEND_DIST.exists():
+            STATIC_FOLDER = DEV_FRONTEND_DIST
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder=str(STATIC_FOLDER))
 CORS(app)
 
-PROVIDERS_YAML = CURRENT_DIR / 'providers.yaml'
+# Use get_resource_path for providers.yaml
+PROVIDERS_YAML = get_resource_path('providers.yaml')
 USER_CONFIG_DIR = Path.home() / '.search-api-webui'
 USER_CONFIG_JSON = USER_CONFIG_DIR / 'config.json'
 
@@ -189,18 +215,15 @@ def serve(path):
         return send_from_directory(str(STATIC_FOLDER), 'index.html')
 
 
-def wait_for_server_ready(host, port, url):
+def wait_for_server_ready(host, port):
     start_time = time.time()
     while time.time() - start_time < 10:
         try:
             with socket.create_connection((host, port), timeout=1):
-                print(f'Server is ready! Opening browser: {url}')
-                webbrowser.open(url)
-                return
+                return True
         except (OSError, ConnectionRefusedError):
             time.sleep(0.1)
-
-    print('Error: Server took too long to start. Browser not opened.')
+    return False
 
 
 def main():
@@ -209,17 +232,57 @@ def main():
     parser = argparse.ArgumentParser(description='Search API WebUI')
     parser.add_argument('--port', type=int, default=8889, help='Port to run the server on')
     parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to run the server on')
+    parser.add_argument('-w', '--webview', action='store_true', help='Use webview to open the application')
     args = parser.parse_args()
 
     url = f'http://{args.host}:{args.port}'
     print('Starting Search API WebUI...')
     print(f'  - Config Storage: {USER_CONFIG_JSON}')
     print(f'  - Serving on: {url}')
+    if args.webview:
+        print('  - Mode: webview')
 
-    # Start a background thread to check server status and open the browser automatically
-    threading.Thread(target=wait_for_server_ready, args=(args.host, args.port, url), daemon=True).start()
-
-    app.run(host=args.host, port=args.port)
+    if args.webview:
+        if not WEBVIEW_AVAILABLE:
+            print('Warning: webview library not installed. Falling back to webbrowser.')
+            # Start server in background thread and wait for it to be ready
+            server_thread = threading.Thread(
+                target=lambda: app.run(
+                    host=args.host, port=args.port, use_reloader=False,
+                ),
+                daemon=True,
+            )
+            server_thread.start()
+            if wait_for_server_ready(args.host, args.port):
+                print(f'Server is ready! Opening browser: {url}')
+                webbrowser.open(url)
+            else:
+                print('Error: Server took too long to start. Browser not opened.')
+        else:
+            # Start server in background thread and wait for it to be ready, then start webview
+            server_thread = threading.Thread(
+                target=lambda: app.run(
+                    host=args.host, port=args.port, use_reloader=False,
+                ),
+                daemon=True,
+            )
+            server_thread.start()
+            if wait_for_server_ready(args.host, args.port):
+                print('Server is ready! Using webview mode...')
+                webview.create_window('Search API WebUI', url, width=1200, height=800)
+                webview.start()
+            else:
+                print('Error: Server took too long to start. Webview not opened.')
+    else:
+        # Start a background thread to check server status and open the browser automatically
+        def open_browser():
+            if wait_for_server_ready(args.host, args.port):
+                print(f'Server is ready! Opening browser: {url}')
+                webbrowser.open(url)
+            else:
+                print('Error: Server took too long to start. Browser not opened.')
+        threading.Thread(target=open_browser, daemon=True).start()
+        app.run(host=args.host, port=args.port)
 
 
 if __name__ == '__main__':
