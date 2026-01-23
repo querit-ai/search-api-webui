@@ -14,12 +14,29 @@ A lightweight, local WebUI for testing, comparing, and visualizing Search APIs (
 * **Secure**: API Keys are stored locally in your $HOME folder.
 ## Installation
 
-Use this method if you just want to run the tool without modifying the code.
+### macOS Installation
+
+For macOS users, you can download the DMG installer from the GitHub Releases page:
+
+1. Visit the [Releases page](https://github.com/querit-ai/search-api-webui/releases)
+2. Download the appropriate DMG file for your Mac architecture:
+   - **Apple Silicon (M1/M2/M3)**: `SearchAPIWebUI-<version>-macOS-arm64.dmg`
+   - **Intel Macs**: `SearchAPIWebUI-<version>-macOS-x86_64.dmg`
+3. Open the DMG file and drag `SearchAPIWebUI` to your Applications folder
+4. Launch `SearchAPIWebUI` from Applications
+
+**Note**: Since the application is not code-signed, macOS may block it on first launch. To allow it to run:
+- Go to **System Settings** > **Privacy & Security**
+- Look for the message about `SearchAPIWebUI` being blocked
+- Click **Open Anyway** to allow the application to run
 
 ### Prerequisites
 
 Python 3.7+
+
 ### Install via Pip
+
+Use this method if you just want to run the tool without modifying the code.
 
 ```
 pip install search-api-webui
