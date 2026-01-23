@@ -25,7 +25,7 @@ jobs:
           - arch: arm64
             runner: macos-15  # M1 runner for native arm64 builds
           - arch: x86_64
-            runner: macos-15  # Intel runner for native x86_64 builds
+            runner: macos-15-intel  # Intel runner for native x86_64 builds
 
     steps:
       - name: Checkout code
