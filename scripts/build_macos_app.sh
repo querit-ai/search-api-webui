@@ -99,6 +99,12 @@ setup_venv() {
     print_msg "$BLUE" "Upgrading pip..."
     pip install --upgrade pip
 
+    # Ensure frontend/dist directory exists for hatchling force-include
+    if [ ! -d "${PROJECT_ROOT}/frontend/dist" ]; then
+        print_msg "$BLUE" "Creating placeholder frontend/dist directory..."
+        mkdir -p "${PROJECT_ROOT}/frontend/dist"
+    fi
+
     # Install dependencies
     print_msg "$BLUE" "Installing Python dependencies..."
     pip install -e ".[webview,build]"
