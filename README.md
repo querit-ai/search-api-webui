@@ -2,7 +2,7 @@
 
 A lightweight, local WebUI for testing, comparing, and visualizing Search APIs (Querit, You, etc.).
 
-(images)
+![Screenshot](docs/images/screenshot.webp)
 
 ## Features
 
