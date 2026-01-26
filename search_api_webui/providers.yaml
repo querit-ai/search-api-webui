@@ -9,6 +9,7 @@ querit:
     query: "{query}"
   response_mapping:
     root_path: "results.result"
+    server_latency_path: "took"
     fields:
       title: "title"
       url: "url"
@@ -24,6 +25,7 @@ you:
   payload: {}
   response_mapping:
     root_path: "results.web"
+    server_latency_path: "metadata.latency"
     fields:
       title: "title"
       url: "url"
