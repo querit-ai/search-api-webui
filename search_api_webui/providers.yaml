@@ -14,6 +14,9 @@ querit:
       title: "title"
       url: "url"
       snippet: "snippet"
+      site_name: "site_name"
+      site_icon: "site_icon"
+      page_age: "page_age"
 
 you:
   url: "https://ydc-index.io/v1/search"
@@ -30,6 +33,8 @@ you:
       title: "title"
       url: "url"
       snippet: "snippets[0] || description"
+      site_icon: "favicon_url"
+      page_age: "page_age"
 
 brave:
   url: "https://api.search.brave.com/res/v1/web/search"
@@ -46,6 +51,7 @@ brave:
       title: "title"
       url: "url"
       snippet: "description"
+      page_age: "page_age"
 
 exa:
   url: "https://api.exa.ai/search"
@@ -62,6 +68,8 @@ exa:
       title: "title"
       url: "url"
       snippet: "text"
+      page_age: "publishedDate"
+      site_icon: "favicon"
 
 querit_sdk:
   type: "querit_sdk"

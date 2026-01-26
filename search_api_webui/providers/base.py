@@ -22,7 +22,7 @@ from abc import ABC, abstractmethod
 
 
 def parse_server_latency(latency_value):
-    """
+    '''
     Parse server latency value from various formats to milliseconds.
 
     Args:
@@ -41,7 +41,7 @@ def parse_server_latency(latency_value):
            - If ends with 'ms' (case insensitive), parse as milliseconds
            - If ends with 's' (case insensitive), parse as seconds and convert to ms
            - If no suffix, convert to number and apply rule 1
-    """
+    '''
     if latency_value is None:
         return None
 
@@ -80,14 +80,14 @@ def parse_server_latency(latency_value):
 
 
 class BaseProvider(ABC):
-    """
+    '''
     Abstract base class for all search providers.
     Enforces a standard interface for executing search queries.
-    """
+    '''
 
     @abstractmethod
     def search(self, query, api_key, **kwargs):
-        """
+        '''
         Execute a search request against the provider.
 
         Args:
@@ -101,5 +101,5 @@ class BaseProvider(ABC):
                 - 'metrics': Dict with 'latency_ms' (client latency), 'server_latency_ms' (server reported latency),
                   and 'size_bytes'.
                 - 'error': (Optional) Error message string if occurred.
-        """
+        '''
         pass

@@ -83,7 +83,7 @@
 ## General Rules
 
 ### Code Style
-- Use **single quotes** `'` for all Python strings
+- Use **single quotes** `'` for all Python strings and doc strings
 - Remove trailing whitespace
 - Add newline at end of file
 - Keep files focused (single responsibility)

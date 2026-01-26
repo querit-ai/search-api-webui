@@ -27,7 +27,7 @@ from .querit import QueritSdkProvider
 
 
 def load_providers(file_path='providers.yaml'):
-    """
+    '''
     Parses the YAML configuration file and instantiates the appropriate provider classes.
 
     Args:
@@ -35,7 +35,7 @@ def load_providers(file_path='providers.yaml'):
 
     Returns:
         dict: A dictionary mapping provider names to their initialized instances.
-    """
+    '''
     if not os.path.exists(file_path):
         print(f'Warning: Provider config file not found at {file_path}')
         return {}

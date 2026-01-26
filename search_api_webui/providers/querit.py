@@ -29,18 +29,18 @@ from .base import BaseProvider, parse_server_latency
 
 
 class QueritSdkProvider(BaseProvider):
-    """
+    '''
     Specialized provider implementation using the official Querit Python SDK.
-    """
+    '''
 
     def __init__(self, config):
         self.config = config
 
     def search(self, query, api_key, **kwargs):
-        """
+        '''
         Executes a search using the Querit SDK.
         Handles the 'Bearer' prefix logic internally within the SDK.
-        """
+        '''
         try:
             # Initialize client with the raw API key
             client = QueritClient(api_key=api_key.strip(), timeout=30)

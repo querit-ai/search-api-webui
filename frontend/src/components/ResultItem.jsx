@@ -21,9 +21,47 @@
  */
 
 import { useState } from 'react';
-import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { Card } from './Card';
 import { cn } from '../lib/utils';
+
+/**
+ * Format page age as relative time if within 1 day, otherwise show date in YYYY-MM-DD format.
+ * @param {string} dateStr - UTC date string from backend
+ * @returns {string | null} Formatted time string, or null if parsing fails
+ */
+function formatPageAge(dateStr) {
+    if (!dateStr) return null;
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return null;
+
+        const now = new Date();
+        const diffMs = now - date;
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        // Show relative time if within 1 day
+        if (diffHours < 24) {
+            if (diffHours < 1) {
+                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                if (diffMinutes < 1) {
+                    return 'Just now';
+                }
+                return `${diffMinutes}m ago`;
+            }
+            const hours = Math.floor(diffHours);
+            return `${hours}h ago`;
+        }
+
+        // Show date in YYYY-MM-DD format for older items
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch {
+        return null;
+    }
+}
 
 export function ResultItem({ item, compact = false }) {
     const [expanded, setExpanded] = useState(false);
@@ -35,6 +73,8 @@ export function ResultItem({ item, compact = false }) {
         shouldTruncate && !expanded
             ? snippet.substring(0, LIMIT) + '...'
             : snippet;
+
+    const displayPageAge = formatPageAge(item.page_age);
 
     const toggleExpand = () => {
         setExpanded(!expanded);
@@ -64,8 +104,24 @@ export function ResultItem({ item, compact = false }) {
                         )}
                     />
                 </a>
-                <div className="text-xs text-green-700 mt-1 truncate mb-2 max-w-full">
-                    {item.url}
+                <div className="text-xs mt-1 mb-2">
+                    {displayPageAge ? (
+                        <div className="flex items-center gap-1.5 text-green-700">
+                            <span className="truncate">{displayPageAge}</span>
+                            <span className="text-green-700">|</span>
+                            {item.site_icon && (
+                                <img src={item.site_icon} alt="" className="w-4 h-4 flex-shrink-0" />
+                            )}
+                            <span className="truncate max-w-[200px]">{item.site_name || item.url}</span>
+                        </div>
+                    ) : (
+                        <span className="truncate max-w-full text-green-700 inline-flex items-center gap-1.5">
+                            {item.site_icon && (
+                                <img src={item.site_icon} alt="" className="w-4 h-4 flex-shrink-0" />
+                            )}
+                            {item.site_name || item.url}
+                        </span>
+                    )}
                 </div>
 
                 <div className={cn("text-gray-700 leading-relaxed", compact ? "text-xs" : "text-sm")}>
