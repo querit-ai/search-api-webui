@@ -30,25 +30,25 @@ logger = logging.getLogger(__name__)
 
 
 class GenericProvider(BaseProvider):
-    """
+    '''
     A generic search provider driven by YAML configuration.
     It constructs HTTP requests dynamically and maps responses using JMESPath.
-    """
+    '''
 
     def __init__(self, config):
-        """
+        '''
         Initialize the provider with a configuration dictionary.
 
         Args:
             config (dict): Configuration containing url, headers, params, and mapping rules.
-        """
+        '''
         self.config = config
         self.session = requests.Session()  # Persistent connection session
         self._connection_ready = False  # Connection ready status
         self._last_url = None  # Last used URL tracker
 
     def _fill_template(self, template_obj, **kwargs):
-        """
+        '''
         Recursively replaces placeholders (e.g., {query}) in dictionaries or strings
         with values provided in kwargs.
 
@@ -58,7 +58,7 @@ class GenericProvider(BaseProvider):
 
         Returns:
             The structure with placeholders replaced by actual values.
-        """
+        '''
         if isinstance(template_obj, str):
             # Treat None values as empty strings to prevent "None" appearing in URLs
             safe_kwargs = {k: (v if v is not None else '') for k, v in kwargs.items()}
@@ -72,7 +72,7 @@ class GenericProvider(BaseProvider):
         return template_obj
 
     def _ensure_connection(self, url, headers):
-        """
+        '''
         Pre-warm HTTPS connection and verify availability.
         Uses lightweight HEAD request to verify connection without fetching response body.
 
@@ -82,7 +82,7 @@ class GenericProvider(BaseProvider):
 
         Returns:
             bool: Whether connection is ready
-        """
+        '''
         # Re-warm if URL changed or connection not ready
         if url != self._last_url or not self._connection_ready:
             try:
@@ -97,7 +97,7 @@ class GenericProvider(BaseProvider):
                 raise
 
     def search(self, query, api_key, **kwargs):
-        """
+        '''
         Perform search using the configured API.
 
         Args:
@@ -107,7 +107,7 @@ class GenericProvider(BaseProvider):
 
         Returns:
             dict: Search results with 'results' and 'metrics' keys
-        """
+        '''
         # 1. Extract parameters with defaults
         limit = kwargs.get('limit', '10')
         language = kwargs.get('language', 'en-US')

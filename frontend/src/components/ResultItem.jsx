@@ -28,7 +28,7 @@ import { cn } from '../lib/utils';
 /**
  * Format page age as relative time if within 1 day, otherwise show date in YYYY-MM-DD format.
  * @param {string} dateStr - UTC date string from backend
- * @returns {string} Formatted time string
+ * @returns {string | null} Formatted time string, or null if parsing fails
  */
 function formatPageAge(dateStr) {
     if (!dateStr) return null;
