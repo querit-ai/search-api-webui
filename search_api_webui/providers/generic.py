@@ -23,7 +23,7 @@ import time
 import jmespath
 import requests
 
-from .base import BaseProvider
+from .base import BaseProvider, parse_server_latency
 
 
 class GenericProvider(BaseProvider):
@@ -129,7 +129,7 @@ class GenericProvider(BaseProvider):
             return {
                 'error': f'Connection failed: {str(e)}',
                 'results': [],
-                'metrics': {'latency_ms': 0, 'size_bytes': 0},
+                'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }
 
         try:
@@ -153,7 +153,7 @@ class GenericProvider(BaseProvider):
             return {
                 'error': str(e),
                 'results': [],
-                'metrics': {'latency_ms': 0, 'size_bytes': 0},
+                'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }
 
 
@@ -180,10 +180,17 @@ class GenericProvider(BaseProvider):
                 entry[std_key] = val if val else ''
             normalized_results.append(entry)
 
+        # Extract server latency from response if configured
+        server_latency_path = mapping.get('server_latency_path')
+        server_latency_ms = parse_server_latency(
+            jmespath.search(server_latency_path, raw_data),
+        ) if server_latency_path else None
+
         return {
             'results': normalized_results,
             'metrics': {
                 'latency_ms': round((end_time - start_time) * 1000, 2),
+                'server_latency_ms': server_latency_ms,
                 'size_bytes': len(response.content),
             },
         }

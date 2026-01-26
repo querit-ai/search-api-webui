@@ -25,7 +25,7 @@ from querit import QueritClient
 from querit.errors import QueritError
 from querit.models.request import SearchRequest
 
-from .base import BaseProvider
+from .base import BaseProvider, parse_server_latency
 
 
 class QueritSdkProvider(BaseProvider):
@@ -78,10 +78,17 @@ class QueritSdkProvider(BaseProvider):
             # Calculate estimated size for metrics (approximate JSON size)
             estimated_size = len(json.dumps(list(normalized_results)))
 
+            # Extract server latency from SDK response if available
+            server_latency_ms = None
+            # The SDK may provide the server's 'took' field from the response
+            if hasattr(response, 'took') and response.took is not None:
+                server_latency_ms = parse_server_latency(response.took)
+
             return {
                 'results': normalized_results,
                 'metrics': {
                     'latency_ms': round((end_time - start_time) * 1000, 2),
+                    'server_latency_ms': server_latency_ms,
                     'size_bytes': estimated_size,
                 },
             }
@@ -91,12 +98,12 @@ class QueritSdkProvider(BaseProvider):
             return {
                 'error': f'Querit SDK Error: {str(e)}',
                 'results': [],
-                'metrics': {'latency_ms': 0, 'size_bytes': 0},
+                'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }
         except Exception as e:
             print(f'Unexpected Error: {e}')
             return {
                 'error': f'Error: {str(e)}',
                 'results': [],
-                'metrics': {'latency_ms': 0, 'size_bytes': 0},
+                'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }

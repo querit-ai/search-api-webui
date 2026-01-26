@@ -26,6 +26,7 @@ import {
     ArrowLeft,
     Search,
     Zap,
+    Clock,
     Database,
     Trophy,
     Loader2,
@@ -89,6 +90,7 @@ function ArenaPage() {
                 results: data.results || [],
                 metrics: {
                     latency_ms: data.metrics?.latency_ms || clientLatency,
+                    server_latency_ms: data.metrics?.server_latency_ms || null,
                     size_bytes: data.metrics?.size_bytes || 0
                 }
             };
@@ -201,11 +203,11 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                 {/* Metrics Display */}
                 {result && !result.error && (
                     <div className="mt-4 space-y-3">
-                        {/* Latency Bar */}
+                        {/* Client Latency Bar */}
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="flex items-center gap-1 text-gray-600">
-                                    <Zap className="w-3 h-3" /> Latency
+                                    <Clock className="w-3 h-3" /> Client Latency
                                 </span>
                                 <span className={cn("font-mono font-bold", isWinnerLatency ? "text-green-600" : "text-gray-900")}>
                                     {result.metrics.latency_ms}ms
@@ -218,6 +220,20 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                                 />
                             </div>
                         </div>
+
+                        {/* Server Latency (if available) */}
+                        {result.metrics.server_latency_ms !== null && (
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs">
+                                    <span className="flex items-center gap-1 text-gray-600">
+                                        <Zap className="w-3 h-3" /> Server Latency
+                                    </span>
+                                    <span className="font-mono font-bold text-blue-600">
+                                        {result.metrics.server_latency_ms}ms
+                                    </span>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Size Bar */}
                         <div className="space-y-1">

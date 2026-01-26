@@ -28,11 +28,12 @@ import {
     Loader2,
     ChevronDown,
     Clock,
+    Zap,
     Database,
     AlertCircle,
     CheckCircle2,
     XCircle,
-    Swords // 新增图标
+    Swords
 } from 'lucide-react';
 import { Button } from './components/Button';
 import { Input } from './components/Input';
@@ -295,10 +296,21 @@ function SearchPage() {
                                     <Badge
                                         variant="outline"
                                         className="gap-1 text-gray-500"
+                                        title="Total client latency"
                                     >
                                         <Clock className="w-3 h-3" />
                                         {metrics.latency_ms}ms
                                     </Badge>
+                                    {metrics.server_latency_ms !== null && (
+                                        <Badge
+                                            variant="outline"
+                                            className="gap-1 text-blue-500"
+                                            title="Server processing latency"
+                                        >
+                                            <Zap className="w-3 h-3" />
+                                            Server: {metrics.server_latency_ms}ms
+                                        </Badge>
+                                    )}
                                     <Badge
                                         variant="outline"
                                         className="gap-1 text-gray-500"
