@@ -90,6 +90,7 @@ function ArenaPage() {
                 results: data.results || [],
                 metrics: {
                     latency_ms: data.metrics?.latency_ms || clientLatency,
+                    server_latency_ms: data.metrics?.server_latency_ms || null,
                     size_bytes: data.metrics?.size_bytes || 0
                 }
             };
