@@ -1,5 +1,8 @@
 name: Build macOS DMG
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main, dmg]
@@ -91,7 +94,7 @@ jobs:
 
       - name: Upload to Release (if tagged)
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
           draft: false
@@ -153,7 +156,7 @@ jobs:
           echo "Created distribution readme"
 
       - name: Upload distribution info
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: dist/README.txt
         env:
