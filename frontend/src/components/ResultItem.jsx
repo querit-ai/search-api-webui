@@ -54,7 +54,7 @@ export function ResultItem({ item, compact = false }) {
                     rel="noopener noreferrer"
                     className="flex items-start justify-between gap-2"
                 >
-                    <h3 className={cn("font-medium text-blue-600 group-hover:underline", compact ? "text-sm" : "text-base")}>
+                    <h3 className={cn("font-medium text-blue-600 group-hover:underline break-words", compact ? "text-sm" : "text-base")}>
                         {item.title || 'Untitled'}
                     </h3>
                     <ExternalLink
@@ -64,7 +64,7 @@ export function ResultItem({ item, compact = false }) {
                         )}
                     />
                 </a>
-                <div className="text-xs text-green-700 mt-1 truncate mb-2">
+                <div className="text-xs text-green-700 mt-1 truncate mb-2 max-w-full">
                     {item.url}
                 </div>
 
