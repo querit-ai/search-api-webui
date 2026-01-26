@@ -14,6 +14,9 @@ querit:
       title: "title"
       url: "url"
       snippet: "snippet"
+      site_name: "site_name"
+      site_icon: "site_icon"
+      page_age: "page_age"
 
 you:
   url: "https://ydc-index.io/v1/search"
@@ -30,6 +33,8 @@ you:
       title: "title"
       url: "url"
       snippet: "snippets[0] || description"
+      site_icon: "favicon_url"
+      page_age: "page_age"
 
 brave:
   url: "https://api.search.brave.com/res/v1/web/search"

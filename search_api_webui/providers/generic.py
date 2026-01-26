@@ -18,12 +18,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import time
 
 import jmespath
 import requests
 
 from .base import BaseProvider, parse_server_latency
+
+logger = logging.getLogger(__name__)
 
 
 class GenericProvider(BaseProvider):
@@ -87,13 +90,24 @@ class GenericProvider(BaseProvider):
                 self.session.head(url, headers=headers, timeout=5)
                 self._connection_ready = True
                 self._last_url = url
-                print(f'  [Connection Pool] Connected to: {url}')
+                logger.debug('[Connection Pool] Connected to: %s', url)
             except Exception as e:
                 self._connection_ready = False
-                print(f'  [Connection Pool] Connection warm-up failed: {e}')
+                logger.warning('[Connection Pool] Connection warm-up failed: %s', e)
                 raise
 
     def search(self, query, api_key, **kwargs):
+        """
+        Perform search using the configured API.
+
+        Args:
+            query: Search query string
+            api_key: API key for authentication
+            **kwargs: Additional parameters (limit, language, api_url)
+
+        Returns:
+            dict: Search results with 'results' and 'metrics' keys
+        """
         # 1. Extract parameters with defaults
         limit = kwargs.get('limit', '10')
         language = kwargs.get('language', 'en-US')
@@ -116,16 +130,15 @@ class GenericProvider(BaseProvider):
         params = self._fill_template(self.config.get('params', {}), **context)
         json_body = self._fill_template(self.config.get('payload', {}), **context)
 
-        # Logging (Masking sensitive API keys)
-        print(f'[{self.config.get("name", "Unknown")}] Search:')
-        print(f'  URL: {url} | Method: {method}')
+        logger.info('[%s] Search: URL=%s | Method=%s',
+                  self.config.get('name', 'Unknown'), url, method)
 
         # Ensure connection is pre-warmed (use HEAD request to verify availability)
         # Pre-warming is not counted in request latency, only verifies connection
         try:
             self._ensure_connection(url, headers)
         except Exception as e:
-            print(f'Connection Warm-up Error: {e}')
+            logger.error('Connection Warm-up Error: %s', e)
             return {
                 'error': f'Connection failed: {str(e)}',
                 'results': [],
@@ -149,21 +162,21 @@ class GenericProvider(BaseProvider):
 
             response.raise_for_status()
         except Exception as e:
-            print(f'Request Error: {e}')
+            logger.error('Request Error: %s', e)
             return {
                 'error': str(e),
                 'results': [],
                 'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }
 
-
-
         # 5. Parse and Normalize Response
         try:
             raw_data = response.json()
         except Exception as e:
-            print(f'JSON Parse Error: {e}')
+            logger.error('JSON Parse Error: %s', e)
             raw_data = {}
+
+        logger.debug('Full response: %s', raw_data)
 
         mapping = self.config.get('response_mapping', {})
         # Use JMESPath to find the list of results
