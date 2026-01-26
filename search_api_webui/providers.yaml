@@ -51,6 +51,7 @@ brave:
       title: "title"
       url: "url"
       snippet: "description"
+      page_age: "page_age"
 
 exa:
   url: "https://api.exa.ai/search"
@@ -67,6 +68,8 @@ exa:
       title: "title"
       url: "url"
       snippet: "text"
+      page_age: "publishedDate"
+      site_icon: "favicon"
 
 querit_sdk:
   type: "querit_sdk"
