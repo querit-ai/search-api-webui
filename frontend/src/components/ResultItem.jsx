@@ -112,7 +112,7 @@ export function ResultItem({ item, compact = false }) {
                             {item.site_icon && (
                                 <img src={item.site_icon} alt="" className="w-4 h-4 flex-shrink-0" />
                             )}
-                            <span className="truncate max-w-[200px]">{item.site_name || item.url}</span>
+                            <span className="truncate max-w-full">{item.site_name || item.url}</span>
                         </div>
                     ) : (
                         <span className="truncate max-w-full text-green-700 inline-flex items-center gap-1.5">

@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import html
 import logging
 import time
 
@@ -190,6 +191,9 @@ class GenericProvider(BaseProvider):
             # Map specific fields (title, url, etc.) based on config
             for std_key, source_path in field_map.items():
                 val = jmespath.search(source_path, item)
+                # Decode HTML entities for site_name
+                if std_key == 'site_name' and val:
+                    val = html.unescape(val)
                 entry[std_key] = val if val else ''
             normalized_results.append(entry)
 
