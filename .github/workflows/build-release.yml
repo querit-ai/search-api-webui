@@ -111,6 +111,7 @@ jobs:
     name: Build Python Wheel
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       id-token: write  # Required for trusted publishing to PyPI
     steps:
       - name: Checkout code
