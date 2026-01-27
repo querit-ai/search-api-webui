@@ -1,6 +1,6 @@
 # Search API WebUI
 
-A lightweight, local WebUI for testing, comparing, and visualizing Search APIs (Querit, You, etc.).
+A lightweight, cross-platform WebUI and native Mac App for testing, comparing, and visualizing Search APIs (Querit, You, etc.).
 
 ![Screenshot](docs/images/screenshot.webp)
 
