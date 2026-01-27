@@ -18,12 +18,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import os
 
 import yaml
 
 from .generic import GenericProvider
 from .querit import QueritSdkProvider
+
+logger = logging.getLogger(__name__)
 
 
 def load_providers(file_path='providers.yaml'):
@@ -37,7 +40,7 @@ def load_providers(file_path='providers.yaml'):
         dict: A dictionary mapping provider names to their initialized instances.
     '''
     if not os.path.exists(file_path):
-        print(f'Warning: Provider config file not found at {file_path}')
+        logger.warning(f'Provider config file not found at {file_path}')
         return {}
 
     with open(file_path, encoding='utf-8') as f:

@@ -19,6 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import json
+import logging
 import time
 
 from querit import QueritClient
@@ -26,6 +27,8 @@ from querit.errors import QueritError
 from querit.models.request import SearchRequest
 
 from .base import BaseProvider, parse_server_latency
+
+logger = logging.getLogger(__name__)
 
 
 class QueritSdkProvider(BaseProvider):
@@ -52,7 +55,7 @@ class QueritSdkProvider(BaseProvider):
                 count=limit,
             )
 
-            print(f'[Querit SDK] Searching: {query} (Limit: {limit})')
+            logger.debug(f'[Querit SDK] Searching: {query} (Limit: {limit})')
 
             start_time = time.time()
 
@@ -94,14 +97,14 @@ class QueritSdkProvider(BaseProvider):
             }
 
         except QueritError as e:
-            print(f'Querit SDK Error: {e}')
+            logger.error(f'Querit SDK Error: {e}')
             return {
                 'error': f'Querit SDK Error: {str(e)}',
                 'results': [],
                 'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
             }
         except Exception as e:
-            print(f'Unexpected Error: {e}')
+            logger.exception(f'Unexpected Error: {e}')
             return {
                 'error': f'Error: {str(e)}',
                 'results': [],

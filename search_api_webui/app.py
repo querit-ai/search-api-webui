@@ -19,6 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import json
+import logging
 import socket
 import sys
 import threading
@@ -36,6 +37,14 @@ try:
     WEBVIEW_AVAILABLE = True
 except ImportError:
     WEBVIEW_AVAILABLE = False
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+logger = logging.getLogger(__name__)
 
 
 def get_resource_path(relative_path):
@@ -77,7 +86,7 @@ if not USER_CONFIG_DIR.exists():
 if PROVIDERS_YAML.exists():
     provider_map = load_providers(str(PROVIDERS_YAML))
 else:
-    print(f'Error: Configuration file not found at {PROVIDERS_YAML}')
+    logger.error(f'Configuration file not found at {PROVIDERS_YAML}')
     provider_map = {}
 
 
@@ -88,7 +97,7 @@ def get_stored_config():
         with open(USER_CONFIG_JSON, encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f'Error reading config: {e}')
+        logger.error(f'Error reading config: {e}')
         return {}
 
 
@@ -97,7 +106,7 @@ def save_stored_config(config_dict):
         with open(USER_CONFIG_JSON, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=2)
     except Exception as e:
-        print(f'Error saving config: {e}')
+        logger.error(f'Error saving config: {e}')
 
 
 @app.route('/api/providers', methods=['GET'])
@@ -244,20 +253,20 @@ def main():
 
     parser = argparse.ArgumentParser(description='Search API WebUI')
     parser.add_argument('--port', type=int, default=8889, help='Port to run the server on')
-    parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to run the server on')
+    parser.add_argument('--host', type=str, default='localhost', help='Host to run the server on')
     parser.add_argument('-w', '--webview', action='store_true', help='Use webview to open the application')
     args = parser.parse_args()
 
     url = f'http://{args.host}:{args.port}'
-    print('Starting Search API WebUI...')
-    print(f'  - Config Storage: {USER_CONFIG_JSON}')
-    print(f'  - Serving on: {url}')
+    logger.info('Starting Search API WebUI...')
+    logger.info(f'  - Config Storage: {USER_CONFIG_JSON}')
+    logger.info(f'  - Serving on: {url}')
     if args.webview:
-        print('  - Mode: webview')
+        logger.info('  - Mode: webview')
 
     if args.webview:
         if not WEBVIEW_AVAILABLE:
-            print('Warning: webview library not installed. Falling back to webbrowser.')
+            logger.warning('webview library not installed. Falling back to webbrowser.')
             # Start server in background thread and wait for it to be ready
             server_thread = threading.Thread(
                 target=lambda: app.run(
@@ -267,10 +276,10 @@ def main():
             )
             server_thread.start()
             if wait_for_server_ready(args.host, args.port):
-                print(f'Server is ready! Opening browser: {url}')
+                logger.info(f'Server is ready! Opening browser: {url}')
                 webbrowser.open(url)
             else:
-                print('Error: Server took too long to start. Browser not opened.')
+                logger.error('Server took too long to start. Browser not opened.')
         else:
             # Start server in background thread and wait for it to be ready, then start webview
             server_thread = threading.Thread(
@@ -281,19 +290,19 @@ def main():
             )
             server_thread.start()
             if wait_for_server_ready(args.host, args.port):
-                print('Server is ready! Using webview mode...')
+                logger.info('Server is ready! Using webview mode...')
                 webview.create_window('Search API WebUI', url, width=1200, height=800)
                 webview.start()
             else:
-                print('Error: Server took too long to start. Webview not opened.')
+                logger.error('Server took too long to start. Webview not opened.')
     else:
         # Start a background thread to check server status and open the browser automatically
         def open_browser():
             if wait_for_server_ready(args.host, args.port):
-                print(f'Server is ready! Opening browser: {url}')
+                logger.info(f'Server is ready! Opening browser: {url}')
                 webbrowser.open(url)
             else:
-                print('Error: Server took too long to start. Browser not opened.')
+                logger.error('Server took too long to start. Browser not opened.')
         threading.Thread(target=open_browser, daemon=True).start()
         app.run(host=args.host, port=args.port)
 
