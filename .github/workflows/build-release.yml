@@ -1,26 +1,31 @@
-name: Build macOS DMG
+name: Build Wheel and Mac App
 
 permissions:
   contents: write
 
 on:
   push:
-    branches: [main, dmg]
+    branches: [main]
     tags:
       - 'v*'
   pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to build (e.g., 0.1.7)'
+      build_dmg:
+        description: 'Build macOS DMG (in addition to wheel)'
+        type: boolean
         required: false
-        default: 'latest'
+        default: false
 
 jobs:
   build-macos:
     name: Build macOS ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    # Only run DMG build if:
+    # 1. Push to a tag (v*) OR
+    # 2. Manual trigger with build_dmg=true
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_dmg == 'true')
     strategy:
       fail-fast: false
       matrix:
@@ -93,7 +98,7 @@ jobs:
           retention-days: 30
 
       - name: Upload to Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
@@ -130,7 +135,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install hatchling
+          pip install hatchling build
 
       - name: Get version from pyproject.toml
         id: get_version
@@ -157,7 +162,7 @@ jobs:
           retention-days: 30
 
       - name: Upload to Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.whl
@@ -166,11 +171,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  create-universal-build:
-    name: Create Universal DMG (Optional)
+  add-release-notes:
+    name: Add Release Notes
     needs: build-macos
-    runs-on: macos-14
-    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -182,24 +187,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Download arm64 DMG
-        uses: actions/download-artifact@v4
-        with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-arm64
-          path: ./artifacts/arm64
-
-      - name: Download x86_64 DMG
-        uses: actions/download-artifact@v4
-        with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-x86_64
-          path: ./artifacts/x86_64
-
-      - name: List downloaded artifacts
-        run: |
-          echo "Downloaded artifacts:"
-          find artifacts -type f -name "*.dmg"
-
-      - name: Create info comment
+      - name: Create release notes
         run: |
           mkdir -p dist
           cat > dist/RELEASE_NOTES.txt << 'EOF'
@@ -225,9 +213,9 @@ jobs:
           Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
           EOF
 
-          echo "Created distribution readme"
+          echo "Created release notes"
 
-      - name: Upload distribution info
+      - name: Upload release notes
         uses: softprops/action-gh-release@v2
         with:
           body_path: dist/RELEASE_NOTES.txt
