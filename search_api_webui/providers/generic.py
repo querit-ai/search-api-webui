@@ -25,7 +25,7 @@ import time
 import jmespath
 import requests
 
-from .base import BaseProvider, parse_server_latency
+from .base import BaseProvider, extract_domain_from_url, parse_server_latency
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +196,11 @@ class GenericProvider(BaseProvider):
                     val = html.unescape(val)
                 entry[std_key] = val if val else ''
             normalized_results.append(entry)
+
+        # Post-process: extract domain from URL if site_name is empty
+        for entry in normalized_results:
+            if not entry.get('site_name') and entry.get('url'):
+                entry['site_name'] = extract_domain_from_url(entry['url']) or ''
 
         # Extract server latency from response if configured
         server_latency_path = mapping.get('server_latency_path')

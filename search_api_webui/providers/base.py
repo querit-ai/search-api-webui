@@ -19,6 +19,39 @@
 # DEALINGS IN THE SOFTWARE.
 
 from abc import ABC, abstractmethod
+from urllib.parse import urlparse
+
+
+def extract_domain_from_url(url):
+    '''
+    Extract domain name from URL, removing 'www.' prefix.
+
+    Args:
+        url (str): The URL to extract domain from.
+
+    Returns:
+        str | None: The domain name without 'www.' prefix
+                   (e.g., 'example.com' from 'https://www.example.com/path'),
+                   or None if the URL is invalid or has no netloc.
+
+    Examples:
+        >>> extract_domain_from_url('https://www.example.com/path')
+        'example.com'
+        >>> extract_domain_from_url('http://example.com')
+        'example.com'
+        >>> extract_domain_from_url('invalid-url')
+        None
+    '''
+    if not url or not isinstance(url, str):
+        return None
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc if parsed.netloc else None
+        if domain and domain.startswith('www.'):
+            domain = domain[4:]
+        return domain
+    except Exception:
+        return None
 
 
 def parse_server_latency(latency_value):
