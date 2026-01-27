@@ -123,7 +123,7 @@ def get_providers_list():
                 'user_settings': {
                     'api_url': user_conf.get('api_url', ''),
                     'limit': user_conf.get('limit', '10'),
-                    'language': user_conf.get('language', 'en-US'),
+                    'language': user_conf.get('language'),
                 },
             },
         )
@@ -138,31 +138,44 @@ def update_config():
     if not provider_name:
         return jsonify({'error': 'Provider name is required'}), 400
 
-    if 'api_key' not in data:
-        return jsonify({'error': 'API Key field is missing'}), 400
-
     api_key = data.get('api_key')
 
     api_url = data.get('api_url', '').strip()
     limit = data.get('limit', '10')
-    language = data.get('language', 'en-US')
+    language = data.get('language')
 
     all_config = get_stored_config()
 
     if provider_name in all_config and isinstance(all_config[provider_name], str):
         all_config[provider_name] = {'api_key': all_config[provider_name]}
 
-    if not api_key:
-        if provider_name in all_config:
-            all_config[provider_name]['api_key'] = ''
-    else:
-        if provider_name not in all_config:
-            all_config[provider_name] = {}
+    # Initialize provider config if not exists
+    if provider_name not in all_config:
+        all_config[provider_name] = {}
 
-        all_config[provider_name]['api_key'] = api_key
+    # Update advanced settings, skip empty values
+    if api_url:
         all_config[provider_name]['api_url'] = api_url
+    elif 'api_url' in all_config[provider_name]:
+        del all_config[provider_name]['api_url']
+
+    if limit:
         all_config[provider_name]['limit'] = limit
+    elif 'limit' in all_config[provider_name]:
+        del all_config[provider_name]['limit']
+
+    if language:
         all_config[provider_name]['language'] = language
+    elif 'language' in all_config[provider_name]:
+        del all_config[provider_name]['language']
+
+    # Only update api_key if explicitly provided
+    if api_key is not None:
+        all_config[provider_name]['api_key'] = api_key
+
+    # Clean up empty provider config
+    if not all_config[provider_name]:
+        del all_config[provider_name]
 
     save_stored_config(all_config)
     return jsonify({'status': 'success'})

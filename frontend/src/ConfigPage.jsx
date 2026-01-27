@@ -40,7 +40,7 @@ function ConfigPage() {
     // Advanced Settings
     const [apiUrl, setApiUrl] = useState('');
     const [limit, setLimit] = useState('10');
-    const [language, setLanguage] = useState('en-US');
+    const [language, setLanguage] = useState('');
 
     const [currentDetails, setCurrentDetails] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -84,12 +84,12 @@ function ConfigPage() {
             if (p.user_settings) {
                 setApiUrl(p.user_settings.api_url || '');
                 setLimit(p.user_settings.limit || '10');
-                setLanguage(p.user_settings.language || 'en-US');
+                setLanguage(p.user_settings.language || '');
             } else {
                 // Reset to defaults if no config exists
                 setApiUrl('');
                 setLimit('10');
-                setLanguage('en-US');
+                setLanguage('');
             }
 
             // Always clear API key input when switching/refreshing for security
@@ -147,10 +147,10 @@ function ConfigPage() {
                 language: language
             };
 
+            // If hasKey is true but apiKey is empty, allow updating only advanced settings
+            // The backend will preserve the existing API key
             if (hasKey && !apiKey) {
-                alert('Please re-enter your API Key to save changes.');
-                setSaving(false);
-                return;
+                delete payload.api_key;
             }
 
             await fetch('/api/config', {
@@ -299,7 +299,7 @@ function ConfigPage() {
                                         Language Code
                                     </label>
                                     <Input
-                                        placeholder="en-US"
+                                        placeholder="e.g., en-US"
                                         value={language}
                                         onChange={(e) => setLanguage(e.target.value)}
                                     />

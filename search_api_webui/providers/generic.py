@@ -59,6 +59,7 @@ class GenericProvider(BaseProvider):
 
         Returns:
             The structure with placeholders replaced by actual values.
+            Dict entries with empty values are removed.
         '''
         if isinstance(template_obj, str):
             # Treat None values as empty strings to prevent "None" appearing in URLs
@@ -69,7 +70,13 @@ class GenericProvider(BaseProvider):
                 # Return original string if a placeholder key is missing in kwargs
                 return template_obj
         elif isinstance(template_obj, dict):
-            return {k: self._fill_template(v, **kwargs) for k, v in template_obj.items()}
+            result = {}
+            for k, v in template_obj.items():
+                filled = self._fill_template(v, **kwargs)
+                # Skip entries with empty values (e.g., empty strings after template fill)
+                if filled != '':
+                    result[k] = filled
+            return result
         return template_obj
 
     def _ensure_connection(self, url, headers):
@@ -111,11 +118,12 @@ class GenericProvider(BaseProvider):
         '''
         # 1. Extract parameters with defaults
         limit = kwargs.get('limit', '10')
-        language = kwargs.get('language', 'en-US')
-        custom_url = kwargs.get('api_url', '').strip()
+        language = kwargs.get('language')
+        custom_url = kwargs.get('api_url')
 
         # 2. Determine configuration
-        url = custom_url if custom_url else self.config.get('url')
+        # Use custom api_url if provided, otherwise fallback to config url
+        url = custom_url.strip() if custom_url else self.config.get('url')
         method = self.config.get('method', 'GET')
 
         # 3. Prepare context for template injection
@@ -123,8 +131,10 @@ class GenericProvider(BaseProvider):
             'query': query,
             'api_key': api_key,
             'limit': limit,
-            'language': language,
         }
+        # Only add language to context if provided
+        if language:
+            context['language'] = language
 
         # 4. construct request components
         headers = self._fill_template(self.config.get('headers', {}), **context)
