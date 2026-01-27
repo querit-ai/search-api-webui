@@ -60,12 +60,24 @@ class GenericProvider(BaseProvider):
         Returns:
             The structure with placeholders replaced by actual values.
             Dict entries with empty values are removed.
+            Pure numeric placeholders (e.g., "{limit}") are converted to int/float.
         '''
         if isinstance(template_obj, str):
             # Treat None values as empty strings to prevent "None" appearing in URLs
             safe_kwargs = {k: (v if v is not None else '') for k, v in kwargs.items()}
             try:
-                return template_obj.format(**safe_kwargs)
+                result = template_obj.format(**safe_kwargs)
+                # Convert to number if the result is a numeric string
+                # and the original template was a pure placeholder like "{limit}"
+                if template_obj.strip().startswith('{') and template_obj.strip().endswith('}'):
+                    try:
+                        # Try int first, then float
+                        if '.' in result:
+                            return float(result)
+                        return int(result)
+                    except (ValueError, AttributeError):
+                        pass
+                return result
             except KeyError:
                 # Return original string if a placeholder key is missing in kwargs
                 return template_obj
@@ -173,7 +185,7 @@ class GenericProvider(BaseProvider):
 
             response.raise_for_status()
         except Exception as e:
-            logger.error('Request Error: %s', e)
+            logger.error('Request Error: %s', e, f"args: {req_args}")
             return {
                 'error': str(e),
                 'results': [],

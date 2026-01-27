@@ -7,6 +7,7 @@ querit:
     "Content-Type": "application/json"
   payload:
     query: "{query}"
+    count: "{limit}"
   response_mapping:
     root_path: "results.result"
     server_latency_path: "took"
@@ -25,6 +26,7 @@ you:
     X-API-Key: "{api_key}"
   params:
     query: "{query}"
+    count: "{limit}"
   payload: {}
   response_mapping:
     root_path: "results.web"
@@ -44,6 +46,7 @@ brave:
     Accept: "application/json"
   params:
     q: "{query}"
+    count: "{limit}"
   payload: {}
   response_mapping:
     root_path: "web.results"
@@ -62,6 +65,7 @@ exa:
   params: {}
   payload:
     query: "{query}"
+    numResults: "{limit}"
   response_mapping:
     root_path: "results"
     fields:
