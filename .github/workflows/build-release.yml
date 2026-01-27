@@ -173,7 +173,7 @@ jobs:
 
   add-release-notes:
     name: Add Release Notes
-    needs: build-macos
+    needs: [build-macos, build-python-wheel]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
