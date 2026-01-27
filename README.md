@@ -57,34 +57,74 @@ Use this method if you want to contribute to the code or build from source.
 * Python 3.7+
 * Node.js & npm (for building the frontend)
 
-### Setup Steps
+### Quick Start with Makefile
 
 **Clone the repository**
 
-```
+```bash
 git clone https://github.com/querit-ai/search-api-webui.git
 cd search-api-webui
 ```
 
+**Development Mode** (with hot reload)
+
+```bash
+make dev
+```
+
+This will:
+- Start Flask backend on http://localhost:8889
+- Start Vite frontend dev server on http://localhost:5173
+- Automatically open your browser
+- Enable hot module replacement for instant updates
+
+**Build Python Wheel**
+
+```bash
+make              # or 'make all'
+```
+
+**Build macOS DMG** (macOS only)
+
+```bash
+make dmg          # Builds for your current architecture
+```
+
+### Manual Setup
+
+If you prefer not to use Makefile:
+
 **Build Frontend**
 
-```
+```bash
 cd frontend
 npm install
 npm run build
-cd …
+cd ..
 ```
 
 **Install search-api-webui (Editable Mode)**
 
-```
+```bash
 pip install -e .
 ```
 
 **Run the Server**
 
-```
+```bash
 python -m search_api_webui.app
+```
+
+### Available Make Commands
+
+```bash
+make              # Build Python wheel package (default)
+make dev          # Start development servers with hot reload
+make dmg          # Build macOS DMG for current architecture
+make backend      # Start backend server only
+make frontend     # Start frontend dev server only
+make clean        # Clean build artifacts
+make help         # Show all available commands
 ```
 
 ## Configuration
