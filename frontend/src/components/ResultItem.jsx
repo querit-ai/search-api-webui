@@ -26,6 +26,31 @@ import { Card } from './Card';
 import { cn } from '../lib/utils';
 
 /**
+ * Check if a string is a valid URL
+ * @param {string} str - String to check
+ * @returns {boolean} True if string is a valid URL
+ */
+function isUrl(str) {
+    if (typeof str !== 'string') return false;
+    try {
+        const url = new URL(str);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Truncate URL for display (show first 60 chars + ...)
+ * @param {string} url - URL to truncate
+ * @returns {string} Truncated URL string
+ */
+function truncateUrl(url) {
+    if (url.length <= 60) return url;
+    return url.substring(0, 60) + '...';
+}
+
+/**
  * Format page age as relative time if within 1 day, otherwise show date in YYYY-MM-DD format.
  * @param {string} dateStr - UTC date string from backend
  * @returns {string | null} Formatted time string, or null if parsing fails
@@ -65,14 +90,25 @@ function formatPageAge(dateStr) {
 
 export function ResultItem({ item, compact = false }) {
     const [expanded, setExpanded] = useState(false);
-    const snippet = item.snippet || '';
-    const LIMIT = compact ? 80 : 120;
-    const shouldTruncate = snippet.length > LIMIT;
 
-    const displaySnippet =
-        shouldTruncate && !expanded
-            ? snippet.substring(0, LIMIT) + '...'
-            : snippet;
+    // Handle snippet: can be string or object
+    const snippetData = item.snippet || '';
+    const isJsonSnippet = typeof snippetData === 'object' && snippetData !== null;
+
+    // Convert snippet to display string
+    let displayString = '';
+    if (isJsonSnippet) {
+        // Convert JSON to formatted string
+        displayString = Object.entries(snippetData)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+    } else {
+        displayString = snippetData;
+    }
+
+    // Truncation logic based on character count
+    const LIMIT = compact ? 160 : 240;
+    const shouldTruncate = displayString.length > LIMIT;
 
     const displayPageAge = formatPageAge(item.page_age);
 
@@ -124,25 +160,108 @@ export function ResultItem({ item, compact = false }) {
                     )}
                 </div>
 
-                <div className={cn("text-gray-700 leading-relaxed", compact ? "text-xs" : "text-sm")}>
-                    {displaySnippet}
-                    {shouldTruncate && (
-                        <button
-                            onClick={toggleExpand}
-                            className={cn(
-                                'ml-2 text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5'
-                            )}
-                        >
-                            {expanded ? (
-                                <>
-                                    Collapse <ChevronUp className="w-3 h-3" />
-                                </>
-                            ) : (
-                                <>
+                <div className={cn("text-gray-700 leading-relaxed whitespace-pre-wrap", compact ? "text-xs" : "text-sm")}>
+                    {shouldTruncate && !expanded ? (
+                        isJsonSnippet ? (
+                            // For JSON snippets, render with bold keys even when truncated
+                            <div className="space-y-1">
+                                {(() => {
+                                    let charCount = 0;
+                                    const entries = Object.entries(snippetData);
+                                    const renderedEntries = [];
+
+                                    for (const [key, value] of entries) {
+                                        // Format value for display
+                                        const displayValue = Array.isArray(value)
+                                            ? value.join(', ')
+                                            : String(value);
+                                        const entryText = `${key}: ${displayValue}\n`;
+
+                                        if (charCount + entryText.length > LIMIT) {
+                                            // Truncate this entry
+                                            const remaining = LIMIT - charCount;
+                                            if (remaining > key.length + 2) {
+                                                // Show at least the key and partial value
+                                                const valueChars = remaining - key.length - 2;
+                                                const truncatedValue = displayValue.substring(0, valueChars);
+                                                renderedEntries.push(
+                                                    <div key={key} className="whitespace-pre-wrap">
+                                                        <span className="font-semibold">{key}:</span>{' '}
+                                                        {truncatedValue}
+                                                        <span>... </span>
+                                                        <button
+                                                            onClick={toggleExpand}
+                                                            className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                                        >
+                                                            Expand <ChevronDown className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            }
+                                            break;
+                                        }
+                                        charCount += entryText.length;
+                                        renderedEntries.push(
+                                            <div key={key} className="whitespace-pre-wrap">
+                                                <span className="font-semibold">{key}:</span> {displayValue}
+                                            </div>
+                                        );
+                                    }
+                                    return renderedEntries;
+                                })()}
+                            </div>
+                        ) : (
+                            // For plain text snippets, simple truncation
+                            <>
+                                {displayString.substring(0, LIMIT)}
+                                <span>... </span>
+                                <button
+                                    onClick={toggleExpand}
+                                    className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                >
                                     Expand <ChevronDown className="w-3 h-3" />
-                                </>
+                                </button>
+                            </>
+                        )
+                    ) : (
+                        <>
+                            {isJsonSnippet ? (
+                                <div className="space-y-1">
+                                    {Object.entries(snippetData).map(([key, value]) => {
+                                        // Handle arrays by joining with comma
+                                        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                                        const isUrlValue = isUrl(displayValue);
+                                        return (
+                                            <div key={key} className="whitespace-pre-wrap">
+                                                <span className="font-semibold">{key}:</span>{' '}
+                                                {isUrlValue ? (
+                                                    <a
+                                                        href={displayValue}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:underline"
+                                                    >
+                                                        {truncateUrl(String(displayValue))}
+                                                    </a>
+                                                ) : (
+                                                    displayValue
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                displayString
                             )}
-                        </button>
+                            {shouldTruncate && (
+                                <button
+                                    onClick={toggleExpand}
+                                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                >
+                                    Collapse <ChevronUp className="w-3 h-3" />
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

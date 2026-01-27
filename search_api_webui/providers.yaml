@@ -14,7 +14,6 @@ querit:
     fields:
       title: "title"
       url: "url"
-      snippet: "snippet"
       site_name: "site_name"
       site_icon: "site_icon"
       page_age: "page_age"
@@ -34,7 +33,6 @@ you:
     fields:
       title: "title"
       url: "url"
-      snippet: "snippets[0] || description"
       site_icon: "favicon_url"
       page_age: "page_age"
 
@@ -53,7 +51,6 @@ brave:
     fields:
       title: "title"
       url: "url"
-      snippet: "description"
       page_age: "page_age"
 
 exa:
@@ -71,7 +68,6 @@ exa:
     fields:
       title: "title"
       url: "url"
-      snippet: "text"
       page_age: "publishedDate"
       site_icon: "favicon"
 

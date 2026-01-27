@@ -207,16 +207,42 @@ class GenericProvider(BaseProvider):
 
         normalized_results = []
         field_map = mapping.get('fields', {})
+        # Define common fields that should be extracted as-is
+        common_fields = {'title', 'url', 'site_name', 'site_icon', 'page_age'}
+
+        # Collect all JMESPath source paths that are already mapped
+        mapped_paths = set(field_map.values())
 
         for item in root_list:
             entry = {}
+            snippet_fields = {}  # Collect unmapped fields from raw API response
+
             # Map specific fields (title, url, etc.) based on config
             for std_key, source_path in field_map.items():
                 val = jmespath.search(source_path, item)
                 # Decode HTML entities for site_name
                 if std_key == 'site_name' and val:
                     val = html.unescape(val)
-                entry[std_key] = val if val else ''
+
+                # Only store common fields in entry
+                if std_key in common_fields:
+                    entry[std_key] = val if val else ''
+
+            # Find all unmapped fields in the raw item
+            # These are fields that exist in the API response but are not in field_map
+            if isinstance(item, dict):
+                for key, value in item.items():
+                    # Check if this key is already mapped in config
+                    # Skip common nested objects and arrays for cleaner output
+                    if key not in mapped_paths and value and not isinstance(value, (dict, list)):
+                        snippet_fields[key] = value
+
+            # Store snippet fields as JSON structure in snippet
+            if snippet_fields:
+                entry['snippet'] = snippet_fields
+            else:
+                entry['snippet'] = ''
+
             normalized_results.append(entry)
 
         # Post-process: extract domain from URL if site_name is empty
