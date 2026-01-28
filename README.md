@@ -1,12 +1,20 @@
 # Search API WebUI
 
-A lightweight, cross-platform WebUI and native Mac App for testing, comparing, and visualizing Search APIs (Querit, You, etc.).
+A lightweight, cross-platform WebUI and native Mac App for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel etc.).
 
 ![Screenshot](docs/images/screenshot.webp)
 
 ## Features
 
-* **Search**: Support for [Querit.ai](https://www.querit.ai/en/docs/reference/post), [You.com](https://docs.you.com/api-reference/search/v1-search), and generic Search APIs via configuration.
+* **Search**: Support for multiple search providers including:
+  - [Querit.qi](https://www.querit.ai/en/docs/reference/post)
+  - [You.com](https://docs.you.com/api-reference/search/v1-search)
+  - [Tavily.com](https://docs.tavily.com/documentation/api-reference/introduction)
+  - [Exa.ai](https://docs.exa.ai/reference/search)
+  - [Parallel.ai](https://docs.parallel.ai/api-reference/search-beta/search)
+  - [Baidu.com](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf)
+  - [Brave.com](https://api-dashboard.search.brave.com/documentation)
+  - And generic Search APIs via configuration
 * **API Arena**: Compare two search providers side-by-side to benchmark latency, payload size, and result relevance.
 * **Performance Metrics**: Real-time display of request latency and payload size.
 * **Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
