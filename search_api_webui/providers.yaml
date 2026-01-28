@@ -152,7 +152,25 @@ serper:
       title: "title"
       snippet: "snippet"
 
+langsearch:
+  url: "https://api.langsearch.com/v1/web-search"
+  method: "POST"
+  headers:
+    "Authorization": "Bearer {api_key}"
+    "Content-Type": "application/json"
+  payload:
+    query: "{query}"
+    count: "{limit}"
+    freshness: "noLimit"
+  response_mapping:
+    root_path: "data.webPages.value"
+    fields:
+      title: "name"
+      url: "url"
+      page_age: "datePublished"
+
 querit_sdk:
   type: "querit_sdk"
   description: "Official Querit Search via Python SDK"
   default_limit: 10
+
