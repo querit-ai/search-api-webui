@@ -21,7 +21,7 @@
  */
 
 import { useState } from 'react';
-import { ExternalLink, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, Clock, Star, TrendingUp } from 'lucide-react';
 import { Card } from './Card';
 import { cn } from '../lib/utils';
 
@@ -86,6 +86,98 @@ function formatPageAge(dateStr) {
     } catch {
         return null;
     }
+}
+
+/**
+ * Render nested JSON value with proper formatting
+ * @param {*} value - Value to render
+ * @param {string} key - Key name
+ * @returns {JSX.Element} Rendered value
+ */
+function renderNestedValue(value, key) {
+    // Handle null/undefined
+    if (value === null || value === undefined) {
+        return <span className="text-gray-400">null</span>;
+    }
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+        // Special handling for image arrays
+        if (key === 'images' && value.length > 0 && value[0].url) {
+            return (
+                <div className="flex flex-wrap gap-2 mt-2">
+                    {value.map((img, idx) => (
+                        <a
+                            key={idx}
+                            href={img.url.startsWith('http') ? img.url : `https://${img.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                        >
+                            <img
+                                src={img.url.startsWith('http') ? img.url : `https://${img.url}`}
+                                alt={`Image ${idx + 1}`}
+                                className="h-20 w-auto object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
+                                loading="lazy"
+                            />
+                        </a>
+                    ))}
+                </div>
+            );
+        }
+        // For other arrays, show as comma-separated list
+        return <span>{value.map(v => JSON.stringify(v)).join(', ')}</span>;
+    }
+
+    // Handle objects
+    if (typeof value === 'object') {
+        return (
+            <div className="ml-4 mt-1 space-y-1 text-xs border-l-2 border-gray-200 pl-3">
+                {Object.entries(value).map(([k, v]) => (
+                    <div key={k}>
+                        <span className="font-semibold text-gray-600">{k}:</span>{' '}
+                        {renderNestedValue(v, k)}
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // Handle thumbnail_url as image
+    if (typeof value === 'string' && key === 'thumbnail_url' && isUrl(value)) {
+        return (
+            <a
+                href={value.startsWith('http') ? value : `https://${value}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block mt-2"
+            >
+                <img
+                    src={value.startsWith('http') ? value : `https://${value}`}
+                    alt="Thumbnail"
+                    className="h-20 w-auto object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
+                    loading="lazy"
+                />
+            </a>
+        );
+    }
+
+    // Handle URLs
+    if (typeof value === 'string' && isUrl(value)) {
+        return (
+            <a
+                href={value.startsWith('http') ? value : `https://${value}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+            >
+                {truncateUrl(value)}
+            </a>
+        );
+    }
+
+    // Handle primitive values
+    return <span>{String(value)}</span>;
 }
 
 export function ResultItem({ item, compact = false }) {
@@ -226,29 +318,13 @@ export function ResultItem({ item, compact = false }) {
                     ) : (
                         <>
                             {isJsonSnippet ? (
-                                <div className="space-y-1">
-                                    {Object.entries(snippetData).map(([key, value]) => {
-                                        // Handle arrays by joining with comma
-                                        const displayValue = Array.isArray(value) ? value.join(', ') : value;
-                                        const isUrlValue = isUrl(displayValue);
-                                        return (
-                                            <div key={key} className="whitespace-pre-wrap">
-                                                <span className="font-semibold">{key}:</span>{' '}
-                                                {isUrlValue ? (
-                                                    <a
-                                                        href={displayValue}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:underline"
-                                                    >
-                                                        {truncateUrl(String(displayValue))}
-                                                    </a>
-                                                ) : (
-                                                    displayValue
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                <div className="space-y-2">
+                                    {Object.entries(snippetData).map(([key, value]) => (
+                                        <div key={key} className="whitespace-pre-wrap">
+                                            <span className="font-semibold">{key}:</span>{' '}
+                                            {renderNestedValue(value, key)}
+                                        </div>
+                                    ))}
                                 </div>
                             ) : (
                                 displayString

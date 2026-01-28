@@ -81,6 +81,9 @@ class GenericProvider(BaseProvider):
             except KeyError:
                 # Return original string if a placeholder key is missing in kwargs
                 return template_obj
+        elif isinstance(template_obj, list):
+            # Handle list/array - recursively process each element
+            return [self._fill_template(item, **kwargs) for item in template_obj]
         elif isinstance(template_obj, dict):
             result = {}
             for k, v in template_obj.items():
@@ -233,8 +236,8 @@ class GenericProvider(BaseProvider):
             if isinstance(item, dict):
                 for key, value in item.items():
                     # Check if this key is already mapped in config
-                    # Skip common nested objects and arrays for cleaner output
-                    if key not in mapped_paths and value and not isinstance(value, (dict, list)):
+                    # Include all unmapped fields, including nested objects and arrays
+                    if key not in mapped_paths and value is not None:
                         snippet_fields[key] = value
 
             # Store snippet fields as JSON structure in snippet
@@ -242,7 +245,7 @@ class GenericProvider(BaseProvider):
                 entry['snippet'] = snippet_fields
             else:
                 entry['snippet'] = ''
-
+            logger.debug('snippet_fields: %s', snippet_fields)
             normalized_results.append(entry)
 
         # Post-process: extract domain from URL if site_name is empty

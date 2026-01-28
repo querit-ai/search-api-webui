@@ -12,8 +12,8 @@ querit:
     root_path: "results.result"
     server_latency_path: "took"
     fields:
-      title: "title"
       url: "url"
+      title: "title"
       site_name: "site_name"
       site_icon: "site_icon"
       page_age: "page_age"
@@ -31,8 +31,8 @@ you:
     root_path: "results.web"
     server_latency_path: "metadata.latency"
     fields:
-      title: "title"
       url: "url"
+      title: "title"
       site_icon: "favicon_url"
       page_age: "page_age"
 
@@ -49,8 +49,8 @@ brave:
   response_mapping:
     root_path: "web.results"
     fields:
-      title: "title"
       url: "url"
+      title: "title"
       page_age: "page_age"
 
 exa:
@@ -63,15 +63,40 @@ exa:
   payload:
     query: "{query}"
     numResults: "{limit}"
+    type: "auto"
   response_mapping:
     root_path: "results"
     fields:
-      title: "title"
       url: "url"
-      page_age: "publishedDate"
+      title: "title"
       site_icon: "favicon"
+      page_age: "publishedDate"
 
 querit_sdk:
   type: "querit_sdk"
   description: "Official Querit Search via Python SDK"
   default_limit: 10
+
+baidu:
+  url: "https://qianfan.baidubce.com/v2/ai_search/web_search"
+  method: "POST"
+  headers:
+    "Accept": "application/json"
+    "Authorization": "Bearer {api_key}"
+    "Content-Type": "application/json"
+  payload:
+    messages:
+      - content: "{query}"
+        role: "user"
+    search_source: "baidu_search_v2"
+    resource_type_filter:
+      - type: "web"
+        top_k: "{limit}"
+  response_mapping:
+    root_path: "references"
+    fields:
+      url: "url"
+      title: "title"
+      site_name: "website"
+      site_icon: "icon"
+      page_age: "date"
