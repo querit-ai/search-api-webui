@@ -21,7 +21,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Search,
     Settings,
@@ -44,6 +44,7 @@ import { cn } from './lib/utils';
 
 function SearchPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     // State Management
     const [providers, setProviders] = useState([]);
@@ -63,12 +64,18 @@ function SearchPage() {
             .then((res) => res.json())
             .then((data) => {
                 setProviders(data);
-                if (data.length > 0) {
+                // Check if there's a provider parameter in URL
+                const providerFromUrl = searchParams.get('provider');
+                if (providerFromUrl && data.find(p => p.name === providerFromUrl)) {
+                    // If URL has a valid provider parameter, select it
+                    setSelectedProvider(providerFromUrl);
+                } else if (data.length > 0) {
+                    // Otherwise, select the first one
                     setSelectedProvider(data[0].name);
                 }
             })
             .catch(console.error);
-    }, []);
+    }, [searchParams]);
 
     // Monitor selection to update Key status
     useEffect(() => {
@@ -79,7 +86,7 @@ function SearchPage() {
     }, [selectedProvider, providers]);
 
     const handleConfigClick = () => {
-        navigate('/config');
+        navigate(`/config?provider=${selectedProvider}`);
     };
 
     const handleArenaClick = () => {

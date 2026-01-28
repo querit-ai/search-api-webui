@@ -127,11 +127,11 @@ dev:
 
 backend:
 	@echo "Starting Flask backend with hot reload..."
-	python -m flask --app search_api_webui.app run --port 8889 --debug
+	FLASK_DEBUG=1 python -m flask --app search_api_webui.app run --port 8889 --debug
 
 frontend:
 	@echo "Starting Vite frontend dev server..."
-	cd frontend && npm run dev -- --open
+	cd frontend && npm run dev
 
 open-browser:
 	@echo "Waiting for servers to start..."

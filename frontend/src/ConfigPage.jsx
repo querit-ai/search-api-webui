@@ -21,7 +21,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Key, Save, Server, Code, Trash2, Settings2 } from 'lucide-react';
 import { Button } from './components/Button';
 import { Input } from './components/Input';
@@ -30,6 +30,7 @@ import { Badge } from './components/Badge';
 
 function ConfigPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [providers, setProviders] = useState([]);
     const [selectedName, setSelectedName] = useState('');
 
@@ -55,8 +56,13 @@ function ConfigPage() {
             .then(res => res.json())
             .then(data => {
                 setProviders(data);
-                // If no selection yet, select the first one
-                if (data.length > 0 && !selectedName) {
+                // Check if there's a provider parameter in URL
+                const providerFromUrl = searchParams.get('provider');
+                if (providerFromUrl && data.find(p => p.name === providerFromUrl)) {
+                    // If URL has a valid provider parameter, select it
+                    selectProvider(providerFromUrl, data);
+                } else if (data.length > 0 && !selectedName) {
+                    // Otherwise, select the first one if no selection yet
                     selectProvider(data[0].name, data);
                 } else if (selectedName) {
                     // Refresh current selection status
@@ -175,7 +181,7 @@ function ConfigPage() {
                 <Button
                     variant="ghost"
                     className="mb-6 pl-0 text-gray-500 hover:text-gray-900"
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate(`/?provider=${selectedName}`)}
                 >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Search
                 </Button>

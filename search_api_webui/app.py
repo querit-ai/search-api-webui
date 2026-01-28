@@ -20,6 +20,7 @@
 
 import json
 import logging
+import os
 import socket
 import sys
 import threading
@@ -39,9 +40,10 @@ except ImportError:
     WEBVIEW_AVAILABLE = False
 
 
-# Configure logging
+# Configure logging based on Flask debug mode or environment variable
+log_level = logging.DEBUG if os.getenv('FLASK_DEBUG') or os.getenv('FLASK_ENV') == 'development' else logging.INFO
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
 )
 logger = logging.getLogger(__name__)
