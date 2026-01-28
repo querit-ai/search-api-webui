@@ -153,18 +153,24 @@ Edit providers.yaml in the root directory to add custom API endpoints. The syste
 
 ```
 my_custom_search:
-url: “https://api.example.com/search”
-method: “GET”
-headers:
-Authorization: “Bearer {api_key}”
-params:
-q: “{query}”
-response_mapping:
-root_path: “data.items”
-fields:
-title: “title”
-url: “link”
-snippet: “snippet”
+  url: "https://api.example.com/search"
+  method: "POST"
+  headers:
+    "Accept": "application/json"
+    "Authorization": "Bearer {api_key}"
+    "Content-Type": "application/json"
+  payload:
+    query: "{query}"
+    count: "{limit}"
+  response_mapping:
+    root_path: "results.result"
+    server_latency_path: "took"
+    fields:
+      url: "url"
+      title: "title"
+      site_name: "site_name"
+      site_icon: "site_icon"
+      page_age: "page_age"
 ```
 
 ## License
