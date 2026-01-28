@@ -135,6 +135,23 @@ brave:
       title: "title"
       page_age: "page_age"
 
+serper:
+  url: "https://google.serper.dev/search"
+  method: "POST"
+  headers:
+    "X-API-KEY": "{api_key}"
+    "Content-Type": "application/json"
+  params: {}
+  payload:
+    q: "{query}"
+    num: "{limit}"
+  response_mapping:
+    root_path: "organic"
+    fields:
+      url: "link"
+      title: "title"
+      snippet: "snippet"
+
 querit_sdk:
   type: "querit_sdk"
   description: "Official Querit Search via Python SDK"

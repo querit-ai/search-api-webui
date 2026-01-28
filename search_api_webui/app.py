@@ -135,6 +135,9 @@ def get_providers_list():
                     'api_url': user_conf.get('api_url', ''),
                     'limit': user_conf.get('limit', '10'),
                     'language': user_conf.get('language'),
+                    'use_proxy': user_conf.get('use_proxy', False),
+                    'proxy_url': user_conf.get('proxy_url', ''),
+                    'skip_warmup': user_conf.get('skip_warmup', False),
                 },
             },
         )
@@ -154,6 +157,9 @@ def update_config():
     api_url = data.get('api_url', '').strip()
     limit = data.get('limit', '10')
     language = data.get('language')
+    use_proxy = data.get('use_proxy', False)
+    proxy_url = data.get('proxy_url', '').strip()
+    skip_warmup = data.get('skip_warmup', False)
 
     all_config = get_stored_config()
 
@@ -179,6 +185,23 @@ def update_config():
         all_config[provider_name]['language'] = language
     elif 'language' in all_config[provider_name]:
         del all_config[provider_name]['language']
+
+    # Save proxy settings
+    if use_proxy:
+        all_config[provider_name]['use_proxy'] = True
+        if proxy_url:
+            all_config[provider_name]['proxy_url'] = proxy_url
+    else:
+        if 'use_proxy' in all_config[provider_name]:
+            del all_config[provider_name]['use_proxy']
+        if 'proxy_url' in all_config[provider_name]:
+            del all_config[provider_name]['proxy_url']
+
+    # Save warmup settings
+    if skip_warmup:
+        all_config[provider_name]['skip_warmup'] = True
+    elif 'skip_warmup' in all_config[provider_name]:
+        del all_config[provider_name]['skip_warmup']
 
     # Only update api_key if explicitly provided
     if api_key is not None:
@@ -223,6 +246,8 @@ def search_api():
         'api_url': provider_config.get('api_url'),
         'limit': provider_config.get('limit'),
         'language': provider_config.get('language'),
+        'proxy_url': provider_config.get('proxy_url') if provider_config.get('use_proxy') else None,
+        'skip_warmup': provider_config.get('skip_warmup', False),
     }
 
     result = provider.search(query, api_key, **search_kwargs)
