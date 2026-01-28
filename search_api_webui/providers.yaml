@@ -36,22 +36,26 @@ you:
       site_icon: "favicon_url"
       page_age: "page_age"
 
-brave:
-  url: "https://api.search.brave.com/res/v1/web/search"
-  method: "GET"
+tavily:
+  url: "https://api.tavily.com/search"
+  method: "POST"
   headers:
-    X-Subscription-Token: "{api_key}"
-    Accept: "application/json"
-  params:
-    q: "{query}"
-    count: "{limit}"
-  payload: {}
+    "Accept": "application/json"
+    "Content-Type": "application/json"
+  payload:
+    api_key: "{api_key}"
+    query: "{query}"
+    max_results: "{limit}"
+    search_depth: "basic"
+    include_favicon: "true"
   response_mapping:
-    root_path: "web.results"
+    root_path: "results"
+    server_latency_path: "response_time"
     fields:
       url: "url"
       title: "title"
-      page_age: "page_age"
+      page_age: "published_date"
+      site_icon: "favicon"
 
 exa:
   url: "https://api.exa.ai/search"
@@ -71,11 +75,6 @@ exa:
       title: "title"
       site_icon: "favicon"
       page_age: "publishedDate"
-
-querit_sdk:
-  type: "querit_sdk"
-  description: "Official Querit Search via Python SDK"
-  default_limit: 10
 
 baidu:
   url: "https://qianfan.baidubce.com/v2/ai_search/web_search"
@@ -100,3 +99,43 @@ baidu:
       site_name: "website"
       site_icon: "icon"
       page_age: "date"
+
+parallel:
+  url: "https://api.parallel.ai/v1beta/search"
+  method: "POST"
+  headers:
+    "Content-Type": "application/json"
+    "x-api-key": "{api_key}"
+    "parallel-beta": "search-extract-2025-10-10"
+  payload:
+    mode: "one-shot"
+    max_results: "{limit}"
+    objective: "{query}"
+  response_mapping:
+    root_path: "results"
+    fields:
+      url: "url"
+      title: "title"
+      page_age: "publish_date"
+
+brave:
+  url: "https://api.search.brave.com/res/v1/web/search"
+  method: "GET"
+  headers:
+    X-Subscription-Token: "{api_key}"
+    Accept: "application/json"
+  params:
+    q: "{query}"
+    count: "{limit}"
+  payload: {}
+  response_mapping:
+    root_path: "web.results"
+    fields:
+      url: "url"
+      title: "title"
+      page_age: "page_age"
+
+querit_sdk:
+  type: "querit_sdk"
+  description: "Official Querit Search via Python SDK"
+  default_limit: 10
