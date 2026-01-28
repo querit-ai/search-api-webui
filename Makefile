@@ -69,9 +69,9 @@ build-wheel:
 	@echo "Step 2/3: Building frontend..."
 	@cd frontend && npm run build
 	@echo "Step 3/3: Building wheel..."
-	@python -m pip install --upgrade pip
+	@python3 -m pip install --upgrade pip
 	@pip install hatchling build
-	@python -m build --wheel
+	@python3 -m build --wheel
 	@echo ""
 	@echo "========================================="
 	@echo "Build Complete!"
@@ -127,7 +127,7 @@ dev:
 
 backend:
 	@echo "Starting Flask backend with hot reload..."
-	FLASK_DEBUG=1 python -m flask --app search_api_webui.app run --port 8889 --debug
+	FLASK_DEBUG=1 python3 -m flask --app search_api_webui.app run --port 8889 --debug
 
 frontend:
 	@echo "Starting Vite frontend dev server..."

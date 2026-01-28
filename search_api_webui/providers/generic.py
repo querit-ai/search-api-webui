@@ -20,10 +20,13 @@
 
 import html
 import logging
+import os
 import time
 
 import jmespath
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .base import BaseProvider, extract_domain_from_url, parse_server_latency
 
@@ -126,7 +129,7 @@ class GenericProvider(BaseProvider):
         Args:
             query: Search query string
             api_key: API key for authentication
-            **kwargs: Additional parameters (limit, language, api_url)
+            **kwargs: Additional parameters (limit, language, api_url, proxy_url, skip_warmup)
 
         Returns:
             dict: Search results with 'results' and 'metrics' keys
@@ -135,13 +138,46 @@ class GenericProvider(BaseProvider):
         limit = kwargs.get('limit', '10')
         language = kwargs.get('language')
         custom_url = kwargs.get('api_url')
+        proxy_url = kwargs.get('proxy_url')
+        skip_warmup = kwargs.get('skip_warmup', False)
 
-        # 2. Determine configuration
+        # 2. Configure proxy for this request if provided
+        if proxy_url:
+            self.session.proxies = {
+                'http': proxy_url,
+                'https': proxy_url,
+            }
+            logger.info('Using proxy: %s', proxy_url)
+
+            # Disable SSL verification when using proxy
+            self.session.verify = False
+            # Suppress InsecureRequestWarning
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        else:
+            # Check environment variables if no user proxy configured
+            env_proxy = os.environ.get('https_proxy') or os.environ.get('HTTPS_PROXY') or \
+                        os.environ.get('http_proxy') or os.environ.get('HTTP_PROXY')
+            if env_proxy:
+                self.session.proxies = {
+                    'http': env_proxy,
+                    'https': env_proxy,
+                }
+                logger.info('Using proxy from environment: %s', env_proxy)
+                self.session.verify = False
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            else:
+                # No proxy, ensure normal SSL verification
+                self.session.proxies = {}
+                self.session.verify = True
+
+        # 3. Determine configuration
         # Use custom api_url if provided, otherwise fallback to config url
         url = custom_url.strip() if custom_url else self.config.get('url')
         method = self.config.get('method', 'GET')
 
-        # 3. Prepare context for template injection
+        # 4. Prepare context for template injection
         context = {
             'query': query,
             'api_key': api_key,
@@ -151,7 +187,7 @@ class GenericProvider(BaseProvider):
         if language:
             context['language'] = language
 
-        # 4. construct request components
+        # 5. construct request components
         headers = self._fill_template(self.config.get('headers', {}), **context)
         params = self._fill_template(self.config.get('params', {}), **context)
         json_body = self._fill_template(self.config.get('payload', {}), **context)
@@ -161,15 +197,13 @@ class GenericProvider(BaseProvider):
 
         # Ensure connection is pre-warmed (use HEAD request to verify availability)
         # Pre-warming is not counted in request latency, only verifies connection
-        try:
-            self._ensure_connection(url, headers)
-        except Exception as e:
-            logger.error('Connection Warm-up Error: %s', e)
-            return {
-                'error': f'Connection failed: {str(e)}',
-                'results': [],
-                'metrics': {'latency_ms': 0, 'server_latency_ms': None, 'size_bytes': 0},
-            }
+        # Skip connection warm-up if disabled in config or by user
+        if not skip_warmup and not self.config.get('skip_connection_warmup', False):
+            try:
+                self._ensure_connection(url, headers)
+            except Exception as e:
+                logger.warning('Connection Warm-up Warning: %s (continuing anyway)', e)
+                # Don't return error, continue with the actual request
 
         try:
             req_args = {'headers': headers, 'timeout': 30}

@@ -42,6 +42,9 @@ function ConfigPage() {
     const [apiUrl, setApiUrl] = useState('');
     const [limit, setLimit] = useState('10');
     const [language, setLanguage] = useState('');
+    const [useProxy, setUseProxy] = useState(false);
+    const [proxyUrl, setProxyUrl] = useState('');
+    const [skipWarmup, setSkipWarmup] = useState(false);
 
     const [currentDetails, setCurrentDetails] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -91,11 +94,17 @@ function ConfigPage() {
                 setApiUrl(p.user_settings.api_url || '');
                 setLimit(p.user_settings.limit || '10');
                 setLanguage(p.user_settings.language || '');
+                setUseProxy(p.user_settings.use_proxy || false);
+                setProxyUrl(p.user_settings.proxy_url || '');
+                setSkipWarmup(p.user_settings.skip_warmup || false);
             } else {
                 // Reset to defaults if no config exists
                 setApiUrl('');
                 setLimit('10');
                 setLanguage('');
+                setUseProxy(false);
+                setProxyUrl('');
+                setSkipWarmup(false);
             }
 
             // Always clear API key input when switching/refreshing for security
@@ -124,7 +133,10 @@ function ConfigPage() {
                     // Keep other settings as they are, or reset them if you prefer
                     api_url: apiUrl,
                     limit: limit,
-                    language: language
+                    language: language,
+                    use_proxy: useProxy,
+                    proxy_url: proxyUrl,
+                    skip_warmup: skipWarmup
                 })
             });
             alert('API Key removed.');
@@ -150,7 +162,10 @@ function ConfigPage() {
                 api_key: apiKey,
                 api_url: apiUrl,
                 limit: limit,
-                language: language
+                language: language,
+                use_proxy: useProxy,
+                proxy_url: proxyUrl,
+                skip_warmup: skipWarmup
             };
 
             // If hasKey is true but apiKey is empty, allow updating only advanced settings
@@ -310,6 +325,58 @@ function ConfigPage() {
                                         onChange={(e) => setLanguage(e.target.value)}
                                     />
                                 </div>
+                            </div>
+
+                            {/* Proxy Settings */}
+                            <div className="space-y-3 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="use-proxy"
+                                        checked={useProxy}
+                                        onChange={(e) => setUseProxy(e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="use-proxy" className="text-sm font-medium text-gray-700">
+                                        Use Proxy
+                                    </label>
+                                </div>
+
+                                {useProxy && (
+                                    <div className="space-y-2 pl-6">
+                                        <label className="text-xs font-medium text-gray-600">
+                                            Proxy URL
+                                        </label>
+                                        <Input
+                                            placeholder="http://proxy.example.com:8080"
+                                            value={proxyUrl}
+                                            onChange={(e) => setProxyUrl(e.target.value)}
+                                            className="font-mono text-sm"
+                                        />
+                                        <p className="text-xs text-gray-500">
+                                            Example: http://agent.baidu.com:8891
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Connection Warmup Settings */}
+                            <div className="space-y-3 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="skip-warmup"
+                                        checked={skipWarmup}
+                                        onChange={(e) => setSkipWarmup(e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="skip-warmup" className="text-sm font-medium text-gray-700">
+                                        Skip Connection Warmup
+                                    </label>
+                                </div>
+                                <p className="text-xs text-gray-500 pl-6">
+                                    Disable pre-connection HEAD request. Enable this if using proxy or experiencing timeout issues.
+                                </p>
                             </div>
                         </div>
 
