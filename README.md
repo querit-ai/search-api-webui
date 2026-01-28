@@ -7,7 +7,7 @@ A lightweight, cross-platform WebUI and native Mac App for testing, comparing, a
 ## Features
 
 * **Search**: Support for multiple search providers including:
-  - [Querit.qi](https://www.querit.ai/en/docs/reference/post)
+  - [Querit.ai](https://www.querit.ai/en/docs/reference/post)
   - [You.com](https://docs.you.com/api-reference/search/v1-search)
   - [Tavily.com](https://docs.tavily.com/documentation/api-reference/introduction)
   - [Exa.ai](https://docs.exa.ai/reference/search)
