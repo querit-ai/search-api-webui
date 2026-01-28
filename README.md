@@ -82,7 +82,9 @@ make dev
 ```
 
 This will:
-- Start Flask backend on http://localhost:8889
+- Set up Python virtual environment and install dependencies
+- Install frontend dependencies (node_modules)
+- Start Flask backend on http://localhost:8889 with hot reload
 - Start Vite frontend dev server on http://localhost:5173
 - Automatically open your browser
 - Enable hot module replacement for instant updates
@@ -96,7 +98,11 @@ make              # or 'make all'
 **Build macOS DMG** (macOS only)
 
 ```bash
-make dmg          # Builds for your current architecture
+make dmg          # Builds DMG for your current architecture (incl. .app build)
+make build-app    # Build only the .app bundle (without DMG)
+# Override architecture if needed:
+make ARCH=arm64 dmg   # Force Apple Silicon build
+make ARCH=x86_64 dmg  # Force Intel build (requires x86_64 Python)
 ```
 
 ### Manual Setup
@@ -130,9 +136,8 @@ python -m search_api_webui.app
 make              # Build Python wheel package (default)
 make dev          # Start development servers with hot reload
 make dmg          # Build macOS DMG for current architecture
-make backend      # Start backend server only
-make frontend     # Start frontend dev server only
 make clean        # Clean build artifacts
+make clean-all    # Clean everything including virtual environment
 make help         # Show all available commands
 ```
 

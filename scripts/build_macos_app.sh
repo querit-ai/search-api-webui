@@ -16,7 +16,7 @@ cd "$PROJECT_ROOT"
 
 # Configuration
 VENV_PREFIX="venv-"
-VENV_DIR="${PROJECT_ROOT}/${VENV_PREFIX}macos-build"
+VENV_DIR="${PROJECT_ROOT}/${VENV_PREFIX}dev"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 BUILD_DIR="${PROJECT_ROOT}/build"
 DIST_DIR="${PROJECT_ROOT}/dist"

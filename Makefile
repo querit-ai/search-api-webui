@@ -1,4 +1,4 @@
-.PHONY: all help dev backend frontend dmg build-app build-dmg clean clean-all test verify-icon check-macos
+.PHONY: all help dev backend frontend dmg build-app clean clean-all test check-macos
 
 # Get version from pyproject.toml
 VERSION := $(shell grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -15,6 +15,9 @@ else ifeq ($(UNAME_M),x86_64)
 else
     ARCH := $(UNAME_M)
 endif
+
+# Virtual environment configuration
+VENV := venv-dev
 
 # Default target: build Python wheel
 all:
@@ -58,20 +61,12 @@ check-macos:
 		exit 1; \
 	fi
 
-verify-icon:
-	@test -f frontend/public/AppIcon.icns && echo "✓ Icon found" || (echo "✗ Icon not found" && exit 1)
-
 # Python wheel build
-build-wheel:
+build-wheel: $(VENV)/requirements frontend/node_modules
 	@echo "Building Python wheel package..."
-	@echo "Step 1/3: Installing dependencies..."
-	@cd frontend && npm ci
-	@echo "Step 2/3: Building frontend..."
 	@cd frontend && npm run build
-	@echo "Step 3/3: Building wheel..."
-	@python3 -m pip install --upgrade pip
-	@pip install hatchling build
-	@python3 -m build --wheel
+	@$(VENV)/bin/pip install hatchling build
+	@$(VENV)/bin/python3 -m build --wheel
 	@echo ""
 	@echo "========================================="
 	@echo "Build Complete!"
@@ -79,23 +74,18 @@ build-wheel:
 	@ls -lh dist/*.whl
 
 # macOS DMG build (for current architecture)
-dmg: check-macos
+dmg: check-macos build-app
 	@echo "Building DMG for $(ARCH)..."
-	@$(MAKE) build-app
-	@$(MAKE) build-dmg
+	@bash scripts/create_dmg.sh $(ARCH)
 	@echo ""
 	@echo "========================================="
 	@echo "DMG Build Complete!"
 	@echo "========================================="
 	@ls -lh dist/SearchAPIWebUI-$(VERSION)-macOS-$(ARCH).dmg
 
-build-app: check-macos verify-icon
+build-app: check-macos frontend/public/AppIcon.icns
 	@echo "Building macOS app for $(ARCH)..."
 	@bash scripts/build_macos_app.sh $(ARCH)
-
-build-dmg: check-macos
-	@echo "Creating DMG for $(ARCH)..."
-	@bash scripts/create_dmg.sh $(ARCH)
 
 test:
 	@echo "Testing application..."
@@ -110,11 +100,29 @@ clean:
 
 clean-all: clean
 	@echo "Cleaning virtual environment..."
-	@rm -rf venv-macos-build build/icons
+	@rm -rf $(VENV) requirements.txt
 	@echo "✓ Clean all complete"
 
+$(VENV)/bin/pip-compile:
+	@echo "Setting up Python virtual environment..."
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "Creating new virtual environment..."; \
+		python3 -m venv $(VENV); \
+	fi
+	@echo "Installing Python dependencies..."
+	@$(VENV)/bin/pip3 install pip-tools
+
+$(VENV)/requirements: pyproject.toml $(VENV)/bin/pip-compile
+	@$(VENV)/bin/pip-compile
+	@$(VENV)/bin/pip3 install -r requirements.txt
+	@touch $(VENV)/requirements
+
+frontend/node_modules: frontend/package-lock.json frontend/package.json
+	cd frontend && npm ci
+	@touch frontend/node_modules
+
 # Development targets
-dev:
+dev: $(VENV)/requirements frontend/node_modules
 	@echo "========================================="
 	@echo "Starting Development Servers"
 	@echo "========================================="
@@ -125,16 +133,17 @@ dev:
 	@echo "========================================="
 	@make -j3 backend frontend open-browser
 
-backend:
+backend: $(VENV)/requirements
 	@echo "Starting Flask backend with hot reload..."
-	FLASK_DEBUG=1 python3 -m flask --app search_api_webui.app run --port 8889 --debug
+	FLASK_DEBUG=1 $(VENV)/bin/python3 -m flask --app search_api_webui.app run --port 8889 --debug
 
-frontend:
+frontend: frontend/node_modules
 	@echo "Starting Vite frontend dev server..."
 	cd frontend && npm run dev
 
 open-browser:
-	@echo "Waiting for servers to start..."
-	@sleep 3
-	@echo "Opening browser..."
+	@echo "Waiting for Backend (8889) and Frontend (5173)..."
+	@bash -c 'while ! nc -z localhost 8889; do sleep 1; done'
+	@bash -c 'while ! nc -z localhost 5173; do sleep 1; done'
+	@echo "All systems go! Opening browser..."
 	@open http://localhost:5173 2>/dev/null || true
