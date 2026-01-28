@@ -2,20 +2,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
-.env
+venv-*/
+requirements.txt
 
 # Frontend / Node
 frontend/node_modules/
 frontend/dist/
-frontend/.DS_Store
 .DS_Store
-
-# Backend
-backend/static/
-
-# User Configuration
-user_config.json
 
 # IDE
 .id*/
