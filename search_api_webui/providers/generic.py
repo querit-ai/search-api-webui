@@ -25,8 +25,6 @@ import time
 
 import jmespath
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from .base import BaseProvider, extract_domain_from_url, parse_server_latency
 

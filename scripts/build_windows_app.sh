@@ -16,11 +16,11 @@ cd "$PROJECT_ROOT"
 
 # Configuration
 VENV_PREFIX="venv-"
-VENV_DIR="${PROJECT_ROOT}/${VENV_PREFIX}windows-build"
+VENV_DIR="${PROJECT_ROOT}/${VENV_PREFIX}dev"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 BUILD_DIR="${PROJECT_ROOT}/build"
 DIST_DIR="${PROJECT_ROOT}/dist"
-SPEC_FILE="${PROJECT_ROOT}/SearchAPIWebUI-Windows.spec"
+SPEC_FILE="${PROJECT_ROOT}/SearchAPIWebUI.spec"
 
 # Default architecture
 ARCH="${1:-x64}"  # x64 or x86
@@ -199,57 +199,6 @@ build_app() {
     print_msg "$GREEN" "App built successfully at: $app_path"
 }
 
-# Create wrapper batch file to pass -w argument
-create_wrapper() {
-    print_section "Creating App Wrapper Script"
-
-    local app_path="${DIST_DIR}/SearchAPIWebUI"
-    local executable_path="${app_path}/SearchAPIWebUI.exe"
-    local wrapper_path="${app_path}/SearchAPIWebUI_launcher.exe"
-    local batch_wrapper="${app_path}/SearchAPIWebUI_Launcher.bat"
-
-    # Check if executable exists
-    if [ ! -f "$executable_path" ]; then
-        print_msg "$RED" "Error: Executable not found at $executable_path"
-        exit 1
-    fi
-
-    # Rename original executable
-    mv "$executable_path" "$wrapper_path"
-
-    # Create batch wrapper script that launches in webview mode
-    cat > "$batch_wrapper" << 'EOF'
-@echo off
-REM Wrapper script to launch Search API WebUI in webview mode
-
-REM Get the directory where this script is located
-set "DIR=%~dp0"
-
-REM Launch the actual executable with -w flag (no console window)
-start "" "%DIR%SearchAPIWebUI_launcher.exe" -w
-EOF
-
-    # Create a VBS script to launch the batch file without console window
-    cat > "${app_path}/SearchAPIWebUI.vbs" << 'EOF'
-' Silent launcher for Search API WebUI
-Set objShell = CreateObject("WScript.Shell")
-Set fso = CreateObject("Scripting.FileSystemObject")
-
-' Get script directory
-scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
-
-' Launch batch file hidden
-objShell.Run """" & scriptDir & "\SearchAPIWebUI_Launcher.bat""", 0, False
-EOF
-
-    # Create main executable that's actually the VBS script
-    # We'll create a simple launcher using the renamed exe
-    cp "$wrapper_path" "$executable_path"
-
-    print_msg "$GREEN" "Wrapper script created successfully"
-    print_msg "$YELLOW" "Note: Users can launch via SearchAPIWebUI.exe or SearchAPIWebUI.vbs (silent)"
-}
-
 # Main build process
 main() {
     print_msg "$GREEN" "========================================="
@@ -263,11 +212,10 @@ main() {
     build_frontend
     verify_icon
     build_app
-    create_wrapper
 
     print_section "Build Complete!"
     print_msg "$GREEN" "Your app is ready at:"
-    print_msg "$GREEN" "  ${DIST_DIR}/SearchAPIWebUI"
+    print_msg "$GREEN" "  ${DIST_DIR}/SearchAPIWebUI/SearchAPIWebUI.exe"
     echo ""
     print_msg "$YELLOW" "Next steps:"
     print_msg "$YELLOW" "  1. Test the app: ${DIST_DIR}/SearchAPIWebUI/SearchAPIWebUI.exe"

@@ -2,7 +2,8 @@
 ; This script creates a professional Windows installer
 
 #define MyAppName "Search API WebUI"
-#define MyAppPublisher "querit.ai"
+#define MyAppPublisher "QUERIT PRIVATE LIMITED"
+#define MyAppPublisherURL "https://querit.ai"
 #define MyAppURL "https://github.com/querit-ai/search-api-webui"
 #define MyAppExeName "SearchAPIWebUI.exe"
 
@@ -22,7 +23,7 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-AppPublisherURL={#MyAppURL}
+AppPublisherURL={#MyAppPublisherURL}
 AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases
 DefaultDirName={autopf}\{#MyAppName}
@@ -32,7 +33,7 @@ LicenseFile=LICENSE
 OutputDir=dist
 OutputBaseFilename=SearchAPIWebUI-{#MyAppVersion}-Windows-{#MyAppArch}-Setup
 SetupIconFile=frontend\public\AppIcon.ico
-Compression=lzma2/max
+Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
@@ -60,10 +61,10 @@ Source: "dist\SearchAPIWebUI\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 
 [Icons]
 ; Start Menu shortcuts
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "Launch Search API WebUI"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 ; Desktop shortcut
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "Launch Search API WebUI"
 ; Quick Launch shortcut
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 

@@ -201,35 +201,6 @@ build_app() {
     print_msg "$GREEN" "App built successfully at: $app_path"
 }
 
-# Create wrapper script to pass -w argument
-create_wrapper() {
-    print_section "Creating App Wrapper Script"
-
-    local app_path="${DIST_DIR}/SearchAPIWebUI.app"
-    local executable_path="${app_path}/Contents/MacOS/SearchAPIWebUI"
-    local wrapper_path="${app_path}/Contents/MacOS/SearchAPIWebUI_wrapper"
-
-    # Rename original executable
-    mv "$executable_path" "$wrapper_path"
-
-    # Create wrapper script
-    cat > "$executable_path" << 'EOF'
-#!/bin/bash
-# Wrapper script to launch Search API WebUI in webview mode
-
-# Get the directory where this script is located
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-# Launch the actual executable with -w flag
-exec "$DIR/SearchAPIWebUI_wrapper" -w "$@"
-EOF
-
-    # Make wrapper executable
-    chmod +x "$executable_path"
-
-    print_msg "$GREEN" "Wrapper script created successfully"
-}
-
 # Main build process
 main() {
     print_msg "$GREEN" "========================================="
@@ -243,7 +214,6 @@ main() {
     build_frontend
     verify_icon
     build_app
-    create_wrapper
 
     print_section "Build Complete!"
     print_msg "$GREEN" "Your app is ready at:"

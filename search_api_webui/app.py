@@ -21,6 +21,7 @@
 import json
 import logging
 import os
+import platform
 import socket
 import sys
 import threading
@@ -38,6 +39,17 @@ try:
     WEBVIEW_AVAILABLE = True
 except ImportError:
     WEBVIEW_AVAILABLE = False
+
+
+# Auto-enable webview mode when running as packaged executable
+# This replaces the need for a separate PyInstaller runtime hook
+if (
+    getattr(sys, 'frozen', False)
+    and platform.system() in ('Windows', 'Darwin')
+    and '-w' not in sys.argv
+    and '--webview' not in sys.argv
+):
+    sys.argv.append('-w')
 
 
 # Configure logging based on Flask debug mode or environment variable

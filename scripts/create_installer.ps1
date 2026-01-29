@@ -60,13 +60,16 @@ function Test-AppBuild {
         exit 1
     }
 
+    # Check for main executable
     $exePath = Join-Path $AppDir "SearchAPIWebUI.exe"
     if (-not (Test-Path $exePath)) {
         Write-ColorOutput "Error: SearchAPIWebUI.exe not found in $AppDir" "Red"
+        Write-ColorOutput "Please rebuild the app using build_windows_app.sh" "Red"
         exit 1
     }
 
     Write-ColorOutput "App build found: $AppDir" "Green"
+    Write-ColorOutput "Main executable: SearchAPIWebUI.exe" "Green"
 }
 
 # Check if Inno Setup is installed
