@@ -39,6 +39,21 @@ For macOS users, you can download the DMG installer from the GitHub Releases pag
 - Look for the message about `SearchAPIWebUI` being blocked
 - Click **Open Anyway** to allow the application to run
 
+### Windows Installation
+
+For Windows users, you can download the installer from the GitHub Releases page:
+
+1. Visit the [Releases page](https://github.com/querit-ai/search-api-webui/releases)
+2. Download the appropriate Setup file for your Windows system:
+   - **64-bit Windows** (most common): `SearchAPIWebUI-<version>-Windows-x64-Setup.exe`
+   - **32-bit Windows** (legacy): `SearchAPIWebUI-<version>-Windows-x86-Setup.exe`
+3. Run the Setup executable and follow the installation wizard
+4. Launch `SearchAPIWebUI` from the Start Menu or Desktop shortcut
+
+**Note**:
+- The installer requires .NET Framework 4.5 or later (usually pre-installed on Windows 8+)
+- Windows Defender SmartScreen may show a warning for unsigned applications. Click "More info" → "Run anyway" to proceed
+
 ### Prerequisites
 
 Python 3.7+

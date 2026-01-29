@@ -1,4 +1,4 @@
-.PHONY: all help dev backend frontend dmg build-app clean clean-all test check-macos
+.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app
 
 # Get version from pyproject.toml
 VERSION := $(shell grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -16,6 +16,9 @@ else
     ARCH := $(UNAME_M)
 endif
 
+# Windows architecture (for cross-platform builds)
+WIN_ARCH ?= x64
+
 # Virtual environment configuration
 VENV := venv-dev
 
@@ -32,10 +35,11 @@ help:
 	@echo "  Architecture: $(ARCH)"
 	@echo "  Version: $(VERSION)"
 	@echo ""
-	@echo "Common Commands:"
+	@echo "Quick Build:"
 	@echo "  make              Build Python wheel package (default)"
 	@echo "  make dev          Start development servers (frontend + backend)"
-	@echo "  make dmg          Build DMG for current architecture ($(ARCH))"
+	@echo "  make dmg          Build macOS DMG (complete package)"
+	@echo "  make exe          Build Windows installer (complete package)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make backend      Start backend server only"
@@ -46,13 +50,18 @@ help:
 	@echo "  make build-dmg    Create DMG from existing .app"
 	@echo "  make test         Test the built application"
 	@echo ""
+	@echo "Windows App Build:"
+	@echo "  make build-windows-app        Build Windows application"
+	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        Clean build artifacts"
 	@echo "  make clean-all    Clean everything including venv"
 	@echo ""
 	@echo "Advanced:"
-	@echo "  make ARCH=arm64   Build for Apple Silicon"
-	@echo "  make ARCH=x86_64  Build for Intel (requires x86_64 Python)"
+	@echo "  make ARCH=arm64       Build macOS for Apple Silicon"
+	@echo "  make ARCH=x86_64      Build macOS for Intel"
+	@echo "  make WIN_ARCH=x64     Build Windows for 64-bit"
+	@echo "  make WIN_ARCH=x86     Build Windows for 32-bit"
 
 check-macos:
 	@if [ "$(UNAME_S)" != "Darwin" ]; then \
@@ -95,12 +104,13 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf build/SearchAPIWebUI dist/SearchAPIWebUI dist/SearchAPIWebUI.app
 	@rm -f dist/SearchAPIWebUI-*-macOS-*.dmg dist/temp-*.dmg
+	@rm -f dist/SearchAPIWebUI-*-Windows-*-Setup.exe
 	@rm -rf dist/*.whl build
 	@echo "✓ Clean complete"
 
 clean-all: clean
 	@echo "Cleaning virtual environment..."
-	@rm -rf $(VENV) requirements.txt
+	@rm -rf $(VENV) venv-windows-build venv-macos-build requirements.txt
 	@echo "✓ Clean all complete"
 
 $(VENV)/bin/pip-compile:
@@ -147,3 +157,33 @@ open-browser:
 	@bash -c 'while ! nc -z localhost 5173; do sleep 1; done'
 	@echo "All systems go! Opening browser..."
 	@open http://localhost:5173 2>/dev/null || true
+
+# Windows build targets
+check-windows:
+	@if ! command -v python3 >/dev/null 2>&1; then \
+		echo "Error: Python 3 not found"; \
+		exit 1; \
+	fi
+	@if ! command -v npm >/dev/null 2>&1; then \
+		echo "Error: npm not found"; \
+		exit 1; \
+	fi
+
+# Simple Windows installer build (like dmg for macOS)
+exe: check-windows build-windows-app
+	@echo "Creating Windows installer for $(WIN_ARCH)..."
+	@if command -v powershell >/dev/null 2>&1; then \
+		powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1 -Arch $(WIN_ARCH); \
+	else \
+		echo "Error: PowerShell not found. Installer creation requires Windows or PowerShell."; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "========================================="
+	@echo "Windows Installer Complete!"
+	@echo "========================================="
+	@ls -lh dist/SearchAPIWebUI-$(VERSION)-Windows-$(WIN_ARCH)-Setup.exe
+
+build-windows-app: check-windows
+	@echo "Building Windows app for $(WIN_ARCH)..."
+	@bash scripts/build_windows_app.sh $(WIN_ARCH)

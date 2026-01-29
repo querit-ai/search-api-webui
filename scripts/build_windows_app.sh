@@ -20,13 +20,12 @@ VENV_DIR="${PROJECT_ROOT}/${VENV_PREFIX}dev"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 BUILD_DIR="${PROJECT_ROOT}/build"
 DIST_DIR="${PROJECT_ROOT}/dist"
-ICON_DIR="${BUILD_DIR}/icons"
 SPEC_FILE="${PROJECT_ROOT}/SearchAPIWebUI.spec"
 
 # Default architecture
-ARCH="${1:-arm64}"  # arm64 or x86_64
-if [[ "$ARCH" != "arm64" && "$ARCH" != "x86_64" ]]; then
-    echo -e "${RED}Error: Unsupported architecture: $ARCH (use arm64 or x86_64)${NC}"
+ARCH="${1:-x64}"  # x64 or x86
+if [[ "$ARCH" != "x64" && "$ARCH" != "x86" ]]; then
+    echo -e "${RED}Error: Unsupported architecture: $ARCH (use x64 or x86)${NC}"
     exit 1
 fi
 
@@ -64,10 +63,6 @@ check_dependencies() {
         missing_deps+=("npm")
     fi
 
-    if ! command_exists iconutil; then
-        missing_deps+=("iconutil (part of macOS)")
-    fi
-
     if [ ${#missing_deps[@]} -ne 0 ]; then
         print_msg "$RED" "Error: Missing required dependencies:"
         for dep in "${missing_deps[@]}"; do
@@ -92,12 +87,29 @@ setup_venv() {
         print_msg "$GREEN" "Virtual environment created"
     fi
 
-    # Activate venv
-    source "$VENV_DIR/bin/activate"
+    # Activate venv (Windows-style in Git Bash or similar)
+    if [ -f "$VENV_DIR/Scripts/activate" ]; then
+        source "$VENV_DIR/Scripts/activate"
+        PYTHON_BIN="$VENV_DIR/Scripts/python"
+        PIP_BIN="$VENV_DIR/Scripts/pip"
+    else
+        source "$VENV_DIR/bin/activate"
+        PYTHON_BIN="$VENV_DIR/bin/python3"
+        PIP_BIN="$VENV_DIR/bin/pip"
+    fi
 
-    # Upgrade pip
+    # Upgrade pip using the recommended method (allow failure)
     print_msg "$BLUE" "Upgrading pip..."
-    pip install --upgrade pip
+    set +e  # Temporarily disable exit on error
+    "$PYTHON_BIN" -m pip install --upgrade pip
+    PIP_EXIT_CODE=$?
+    set -e  # Re-enable exit on error
+
+    if [ $PIP_EXIT_CODE -ne 0 ]; then
+        print_msg "$YELLOW" "Warning: pip upgrade failed (exit code: $PIP_EXIT_CODE), continuing with existing version"
+    else
+        print_msg "$GREEN" "pip upgraded successfully"
+    fi
 
     # Ensure frontend/dist directory exists for hatchling force-include
     if [ ! -d "${PROJECT_ROOT}/frontend/dist" ]; then
@@ -107,7 +119,7 @@ setup_venv() {
 
     # Install dependencies
     print_msg "$BLUE" "Installing Python dependencies..."
-    pip install -e ".[webview,build]"
+    "$PIP_BIN" install -e ".[webview,build]"
 
     print_msg "$GREEN" "Python environment ready"
 }
@@ -123,8 +135,7 @@ build_frontend() {
 
     cd "$FRONTEND_DIR"
 
-    # Always install npm dependencies to ensure platform-specific binaries are correct
-    # This is especially important for rollup which has platform-specific native modules
+    # Install npm dependencies
     print_msg "$BLUE" "Installing npm dependencies..."
     npm install
 
@@ -145,19 +156,19 @@ build_frontend() {
 verify_icon() {
     print_section "Verifying App Icon"
 
-    local icns_path="${PROJECT_ROOT}/frontend/public/AppIcon.icns"
+    local ico_path="${PROJECT_ROOT}/frontend/public/AppIcon.ico"
 
-    if [ ! -f "$icns_path" ]; then
-        print_msg "$RED" "Error: Icon not found at $icns_path"
+    if [ ! -f "$ico_path" ]; then
+        print_msg "$RED" "Error: Windows icon not found at $ico_path"
         exit 1
     fi
 
-    print_msg "$GREEN" "Icon found at: $icns_path"
+    print_msg "$GREEN" "Icon found at: $ico_path"
 }
 
 # Build app with PyInstaller
 build_app() {
-    print_section "Building macOS App with PyInstaller"
+    print_section "Building Windows App with PyInstaller"
 
     print_msg "$BLUE" "Target architecture: $ARCH"
 
@@ -168,35 +179,22 @@ build_app() {
         rm -rf "$DIST_DIR/SearchAPIWebUI"
     fi
 
-    # Modify spec file for target architecture
-    if [ "$ARCH" = "x86_64" ]; then
-        print_msg "$BLUE" "Updating spec file for x86_64..."
-        sed -i.bak "s/target_arch='arm64'/target_arch='x86_64'/" "$SPEC_FILE"
-    elif [ "$ARCH" = "arm64" ]; then
-        print_msg "$BLUE" "Updating spec file for arm64..."
-        sed -i.bak "s/target_arch='x86_64'/target_arch='arm64'/" "$SPEC_FILE"
-    fi
-
-    # Run PyInstaller
+    # Run PyInstaller (use from venv)
     print_msg "$BLUE" "Running PyInstaller..."
-    pyinstaller --clean --noconfirm "$SPEC_FILE"
-
-    # Restore spec file
-    if [ -f "${SPEC_FILE}.bak" ]; then
-        mv "${SPEC_FILE}.bak" "$SPEC_FILE"
+    if [ -f "$VENV_DIR/Scripts/pyinstaller.exe" ]; then
+        "$VENV_DIR/Scripts/pyinstaller.exe" --clean --noconfirm "$SPEC_FILE"
+    elif [ -f "$VENV_DIR/bin/pyinstaller" ]; then
+        "$VENV_DIR/bin/pyinstaller" --clean --noconfirm "$SPEC_FILE"
+    else
+        pyinstaller --clean --noconfirm "$SPEC_FILE"
     fi
 
-    # Check if app was created
-    local app_path="${DIST_DIR}/SearchAPIWebUI.app"
+    # Check if app directory was created
+    local app_path="${DIST_DIR}/SearchAPIWebUI"
     if [ ! -d "$app_path" ]; then
-        print_msg "$RED" "Error: App build failed - .app bundle not found"
+        print_msg "$RED" "Error: App build failed - distribution directory not found"
         exit 1
     fi
-
-    # Apply ad-hoc signature to allow running on user machines
-    # This prevents Gatekeeper from blocking the app with "damaged" message
-    print_msg "$BLUE" "Applying ad-hoc signature..."
-    codesign --force --deep --sign - "$app_path"
 
     print_msg "$GREEN" "App built successfully at: $app_path"
 }
@@ -204,7 +202,7 @@ build_app() {
 # Main build process
 main() {
     print_msg "$GREEN" "========================================="
-    print_msg "$GREEN" "Search API WebUI - macOS App Builder"
+    print_msg "$GREEN" "Search API WebUI - Windows App Builder"
     print_msg "$GREEN" "========================================="
     print_msg "$BLUE" "Architecture: $ARCH"
     echo ""
@@ -217,11 +215,11 @@ main() {
 
     print_section "Build Complete!"
     print_msg "$GREEN" "Your app is ready at:"
-    print_msg "$GREEN" "  ${DIST_DIR}/SearchAPIWebUI.app"
+    print_msg "$GREEN" "  ${DIST_DIR}/SearchAPIWebUI/SearchAPIWebUI.exe"
     echo ""
     print_msg "$YELLOW" "Next steps:"
-    print_msg "$YELLOW" "  1. Test the app: open ${DIST_DIR}/SearchAPIWebUI.app"
-    print_msg "$YELLOW" "  2. Create DMG: ./scripts/create_dmg.sh"
+    print_msg "$YELLOW" "  1. Test the app: ${DIST_DIR}/SearchAPIWebUI/SearchAPIWebUI.exe"
+    print_msg "$YELLOW" "  2. Create installer: powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1"
     echo ""
 }
 
