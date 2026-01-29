@@ -89,7 +89,7 @@ function New-CodeSigningCert {
 }
 
 # Export certificate for distribution
-function Export-Certificate {
+function Export-SigningCertificate {
     param($Certificate)
 
     Write-Section "Exporting Certificate"
@@ -98,7 +98,7 @@ function Export-Certificate {
     $certPath = Join-Path $certDir "QUERIT-CodeSigning.cer"
 
     try {
-        Export-Certificate -Cert $Certificate -FilePath $certPath -Force | Out-Null
+        Microsoft.PowerShell.Security\Export-Certificate -Cert $Certificate -FilePath $certPath -Force | Out-Null
         Write-ColorOutput "Certificate exported to: $certPath" "Green"
         Write-ColorOutput "" "White"
         Write-ColorOutput "Users can install this certificate to trust the application:" "Yellow"
@@ -212,7 +212,7 @@ function Main {
 
     # Export certificate if requested
     if ($ExportCert) {
-        Export-Certificate -Certificate $cert
+        Export-SigningCertificate -Certificate $cert
     }
 
     Write-Section "Signing Complete!"
