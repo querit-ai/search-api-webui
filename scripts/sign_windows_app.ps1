@@ -50,6 +50,12 @@ function New-CodeSigningCert {
             Write-ColorOutput "Thumbprint: $($existingCert.Thumbprint)" "Yellow"
             Write-ColorOutput "Expires: $($existingCert.NotAfter)" "Yellow"
 
+            # In CI environment or non-interactive mode, automatically reuse existing certificate
+            if ($env:CI -eq "true" -or -not [Environment]::UserInteractive) {
+                Write-ColorOutput "Running in CI/non-interactive mode, reusing existing certificate" "Yellow"
+                return $existingCert
+            }
+
             $reuse = Read-Host "Reuse existing certificate? (Y/n)"
             if ($reuse -ne "n" -and $reuse -ne "N") {
                 return $existingCert

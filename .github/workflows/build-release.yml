@@ -319,10 +319,26 @@ jobs:
         shell: powershell
         run: choco install innosetup -y
 
+      - name: Sign Windows Application
+        shell: powershell
+        env:
+          CI: true
+        run: |
+          powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -ExportCert
+
       - name: Create Windows Installer
         shell: powershell
         run: |
           powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1 -Arch ${{ matrix.arch }}
+
+      - name: Sign Windows Installer
+        shell: powershell
+        env:
+          CI: true
+        run: |
+          $version = (Select-String -Path pyproject.toml -Pattern 'version\s*=\s*"([^"]+)"').Matches.Groups[1].Value
+          $installerPath = "dist/SearchAPIWebUI-$version-Windows-${{ matrix.arch }}-Setup.exe"
+          powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath
 
       - name: List built files
         shell: bash
