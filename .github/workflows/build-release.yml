@@ -317,11 +317,7 @@ jobs:
 
       - name: Install Inno Setup
         shell: powershell
-        run: |
-          Write-Host "Installing Inno Setup..."
-          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile "innosetup.exe"
-          Start-Process -FilePath "innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
-          Write-Host "Inno Setup installed"
+        run: choco install innosetup -y
 
       - name: Create Windows Installer
         shell: powershell
