@@ -152,28 +152,18 @@ build_frontend() {
     print_msg "$GREEN" "Frontend built successfully"
 }
 
-# Verify icon exists or convert from PNG to ICO
+# Verify icon exists
 verify_icon() {
     print_section "Verifying App Icon"
 
     local ico_path="${PROJECT_ROOT}/frontend/public/AppIcon.ico"
-    local png_path="${PROJECT_ROOT}/frontend/public/icon.png"
 
     if [ ! -f "$ico_path" ]; then
-        print_msg "$YELLOW" "Windows .ico file not found at $ico_path"
-
-        if [ -f "$png_path" ]; then
-            print_msg "$BLUE" "Converting PNG to ICO format..."
-            # Note: You may need to install ImageMagick or use Python PIL/Pillow
-            # For now, we'll just warn the user
-            print_msg "$YELLOW" "Warning: Please convert $png_path to $ico_path manually"
-            print_msg "$YELLOW" "You can use online tools or ImageMagick: convert icon.png -define icon:auto-resize=256,128,64,48,32,16 AppIcon.ico"
-        else
-            print_msg "$YELLOW" "Warning: No icon file found, app will use default icon"
-        fi
-    else
-        print_msg "$GREEN" "Icon found at: $ico_path"
+        print_msg "$RED" "Error: Windows icon not found at $ico_path"
+        exit 1
     fi
+
+    print_msg "$GREEN" "Icon found at: $ico_path"
 }
 
 # Build app with PyInstaller
