@@ -53,7 +53,6 @@ For Windows users, you can download the installer from the GitHub Releases page:
 **Note**:
 - The installer requires .NET Framework 4.5 or later (usually pre-installed on Windows 8+)
 - Windows Defender SmartScreen may show a warning for unsigned applications. Click "More info" → "Run anyway" to proceed
-- For detailed build instructions, see [docs/WINDOWS_BUILD.md](docs/WINDOWS_BUILD.md)
 
 ### Prerequisites
 

@@ -1,4 +1,4 @@
-.PHONY: all help dev backend frontend dmg build-app clean clean-all test check-macos check-windows build-windows-app build-windows-installer windows
+.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app
 
 # Get version from pyproject.toml
 VERSION := $(shell grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -35,11 +35,11 @@ help:
 	@echo "  Architecture: $(ARCH)"
 	@echo "  Version: $(VERSION)"
 	@echo ""
-	@echo "Common Commands:"
+	@echo "Quick Build:"
 	@echo "  make              Build Python wheel package (default)"
 	@echo "  make dev          Start development servers (frontend + backend)"
-	@echo "  make dmg          Build DMG for current architecture ($(ARCH))"
-	@echo "  make windows      Build Windows installer (requires Windows or WSL)"
+	@echo "  make dmg          Build macOS DMG (complete package)"
+	@echo "  make exe          Build Windows installer (complete package)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make backend      Start backend server only"
@@ -52,8 +52,6 @@ help:
 	@echo ""
 	@echo "Windows App Build:"
 	@echo "  make build-windows-app        Build Windows application"
-	@echo "  make build-windows-installer  Create Windows installer"
-	@echo "  make windows                  Build both app and installer"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        Clean build artifacts"
@@ -171,16 +169,8 @@ check-windows:
 		exit 1; \
 	fi
 
-build-windows-app: check-windows
-	@echo "Building Windows app for $(WIN_ARCH)..."
-	@bash scripts/build_windows_app.sh $(WIN_ARCH)
-	@echo ""
-	@echo "========================================="
-	@echo "Windows App Build Complete!"
-	@echo "========================================="
-	@ls -lh dist/SearchAPIWebUI/
-
-build-windows-installer: build-windows-app
+# Simple Windows installer build (like dmg for macOS)
+exe: check-windows build-windows-app
 	@echo "Creating Windows installer for $(WIN_ARCH)..."
 	@if command -v powershell >/dev/null 2>&1; then \
 		powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1 -Arch $(WIN_ARCH); \
@@ -194,5 +184,6 @@ build-windows-installer: build-windows-app
 	@echo "========================================="
 	@ls -lh dist/SearchAPIWebUI-$(VERSION)-Windows-$(WIN_ARCH)-Setup.exe
 
-windows: build-windows-installer
-	@echo "Windows build complete!"
+build-windows-app: check-windows
+	@echo "Building Windows app for $(WIN_ARCH)..."
+	@bash scripts/build_windows_app.sh $(WIN_ARCH)
