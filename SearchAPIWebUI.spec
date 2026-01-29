@@ -73,6 +73,7 @@ exe = EXE(
     target_arch='x86_64',  # Default to arm64, can be overridden
     codesign_identity=None,
     entitlements_file=None,
+    icon=str(project_root / 'frontend' / 'public' / 'AppIcon.ico') if os.name == 'nt' else None,
 )
 
 # COLLECT - onedir mode
