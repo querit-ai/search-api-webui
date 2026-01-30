@@ -324,7 +324,16 @@ jobs:
         env:
           CI: true
         run: |
-          powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -ExportCert
+          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
+          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
+
+          if ($certBase64 -and $certPassword) {
+            Write-Host "Using certificate from GitHub Secrets"
+            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -CertificateBase64 $certBase64 -CertificatePassword $certPassword -ExportCert
+          } else {
+            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
+            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -ExportCert
+          }
 
       - name: Create Windows Installer
         shell: powershell
@@ -338,7 +347,17 @@ jobs:
         run: |
           $version = (Select-String -Path pyproject.toml -Pattern 'version\s*=\s*"([^"]+)"').Matches.Groups[1].Value
           $installerPath = "dist/SearchAPIWebUI-$version-Windows-${{ matrix.arch }}-Setup.exe"
-          powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath
+
+          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
+          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
+
+          if ($certBase64 -and $certPassword) {
+            Write-Host "Using certificate from GitHub Secrets"
+            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath -CertificateBase64 $certBase64 -CertificatePassword $certPassword
+          } else {
+            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
+            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath
+          }
 
       - name: List built files
         shell: bash

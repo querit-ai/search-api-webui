@@ -1,9 +1,11 @@
 # PowerShell script to sign Windows application with self-signed certificate
-# This script creates a self-signed code signing certificate and signs the application
+# This script can use either a provided certificate (from GitHub Secrets) or create a self-signed certificate
 
 param(
     [string]$AppPath = "dist\SearchAPIWebUI\SearchAPIWebUI.exe",
     [string]$CertSubject = "CN=QUERIT PRIVATE LIMITED, O=QUERIT PRIVATE LIMITED, C=SG",
+    [string]$CertificateBase64 = "",
+    [string]$CertificatePassword = "",
     [switch]$ExportCert = $false
 )
 
@@ -84,6 +86,46 @@ function New-CodeSigningCert {
     }
     catch {
         Write-ColorOutput "Error creating certificate: $_" "Red"
+        exit 1
+    }
+}
+
+
+# Import certificate from base64 string (for CI/CD)
+function Import-CertificateFromBase64 {
+    param(
+        [string]$Base64String,
+        [string]$Password
+    )
+
+    Write-Section "Importing Certificate from Secret"
+
+    try {
+        # Decode base64 to bytes
+        Write-ColorOutput "Decoding certificate..." "Blue"
+        $certBytes = [System.Convert]::FromBase64String($Base64String)
+
+        # Save to temporary file
+        $tempCertPath = Join-Path $env:TEMP "imported-cert.pfx"
+        [System.IO.File]::WriteAllBytes($tempCertPath, $certBytes)
+
+        # Import certificate
+        Write-ColorOutput "Importing certificate to CurrentUser store..." "Blue"
+        $securePassword = ConvertTo-SecureString -String $Password -Force -AsPlainText
+        $cert = Import-PfxCertificate -FilePath $tempCertPath -CertStoreLocation "Cert:\CurrentUser\My" -Password $securePassword -Exportable
+
+        # Clean up temp file
+        Remove-Item $tempCertPath -Force
+
+        Write-ColorOutput "Certificate imported successfully!" "Green"
+        Write-ColorOutput "Thumbprint: $($cert.Thumbprint)" "Green"
+        Write-ColorOutput "Subject: $($cert.Subject)" "Green"
+        Write-ColorOutput "Expires: $($cert.NotAfter)" "Green"
+
+        return $cert
+    }
+    catch {
+        Write-ColorOutput "Error importing certificate: $_" "Red"
         exit 1
     }
 }
@@ -191,7 +233,6 @@ function Main {
     Write-ColorOutput "=========================================" "Green"
     Write-ColorOutput "Windows Application Code Signing Tool" "Green"
     Write-ColorOutput "=========================================" "Green"
-    Write-ColorOutput "Using Self-Signed Certificate" "Blue"
     Write-Host ""
 
     # Check administrator privileges (recommended but not required)
@@ -201,8 +242,16 @@ function Main {
         Write-Host ""
     }
 
-    # Create or get certificate
-    $cert = New-CodeSigningCert
+    # Determine certificate source
+    $cert = $null
+    if ($CertificateBase64 -and $CertificatePassword) {
+        Write-ColorOutput "Using certificate from environment/secrets" "Blue"
+        $cert = Import-CertificateFromBase64 -Base64String $CertificateBase64 -Password $CertificatePassword
+    }
+    else {
+        Write-ColorOutput "Using self-signed certificate" "Blue"
+        $cert = New-CodeSigningCert
+    }
 
     # Sign the application
     $signResult = Sign-Application -Certificate $cert -FilePath $AppPath
