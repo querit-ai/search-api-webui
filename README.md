@@ -1,12 +1,12 @@
 # Search API WebUI
 
-A lightweight, cross-platform WebUI and native Mac App for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel, Serper etc.).
+Python WebUI with native Mac/Windows Apps for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel etc.).
 
 ![Screenshot](docs/images/screenshot.webp)
 
 ## Features
 
-* **Search**: Support for multiple search providers including:
+* **Search**: Support for multiple search api providers including:
   - [Querit.ai](https://www.querit.ai/en/docs/reference/post)
   - [You.com](https://docs.you.com/api-reference/search/v1-search)
   - [Tavily.com](https://docs.tavily.com/documentation/api-reference/introduction)
@@ -14,13 +14,14 @@ A lightweight, cross-platform WebUI and native Mac App for testing, comparing, a
   - [Parallel.ai](https://docs.parallel.ai/api-reference/search-beta/search)
   - [Baidu.com](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf)
   - [Brave.com](https://api-dashboard.search.brave.com/documentation)
-  - [Serper.dev](https://serper.dev) - Google Search API
-  - And generic Search APIs via configuration
+  - [Serper.dev](https://serper.dev)
+  - You can add more generic Search APIs via configuration
 * **API Arena**: Compare two search providers side-by-side to benchmark latency, payload size, and result relevance.
 * **Performance Metrics**: Real-time display of request latency and payload size.
-* **Visual Rendering**: Renders standard search results (Title, Snippet, URL) in a clean card layout.
-* **Configurable**: Easy-to-edit providers.yaml to add or modify search providers.
+* **Visual Rendering**: Renders standard search results (Title, URL, SiteName, SiteIcon, PageAge, Snippet) in a clean card layout.
+* **Configurable**: Easy-to-edit `providers.yaml` to add or modify search providers.
 * **Secure**: API Keys are stored locally in your $HOME folder.
+
 ## Installation
 
 ### macOS Installation
@@ -54,10 +55,6 @@ For Windows users, you can download the installer from the GitHub Releases page:
 - The installer requires .NET Framework 4.5 or later (usually pre-installed on Windows 8+)
 - Windows Defender SmartScreen may show a warning for unsigned applications. Click "More info" → "Run anyway" to proceed
 
-### Prerequisites
-
-Python 3.7+
-
 ### Install via Pip
 
 Use this method if you just want to run the tool without modifying the code.
@@ -78,7 +75,7 @@ Use this method if you want to contribute to the code or build from source.
 
 ### Prerequisites
 
-* Python 3.7+
+* Python 3.8+
 * Node.js & npm (for building the frontend)
 
 ### Quick Start with Makefile
