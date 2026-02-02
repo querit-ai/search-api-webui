@@ -120,6 +120,10 @@ jobs:
   build-python-wheel:
     name: Build Python Wheel
     runs-on: ubuntu-latest
+    # Only run wheel build if:
+    # 1. Push to a tag (v*) OR
+    # 2. Manual trigger (always build wheel for workflow_dispatch)
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       id-token: write  # Required for trusted publishing to PyPI
@@ -198,35 +202,31 @@ jobs:
     # 2. Manual trigger with build_android=true
     if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_android == 'true')
 
+    container:
+      image: kivy/buildozer:latest
+      options: --privileged
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Cache Buildozer global directory
         uses: actions/cache@v4
         with:
-          path: ~/.buildozer
+          path: /root/.buildozer
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
             buildozer-global-
@@ -238,33 +238,6 @@ jobs:
           key: buildozer-local-${{ hashFiles('buildozer.spec') }}-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             buildozer-local-
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk \
-            python3-pip \
-            autoconf \
-            libtool \
-            pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            cmake \
-            libffi-dev \
-            libssl-dev \
-            automake \
-            gettext \
-            libltdl-dev
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install buildozer cython
 
       - name: Install npm dependencies and build frontend
         working-directory: frontend
@@ -283,10 +256,6 @@ jobs:
           VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
-
-      - name: Accept Android SDK licenses
-        run: |
-          yes | sdkmanager --licenses || true
 
       - name: Build APK with Buildozer
         run: |
