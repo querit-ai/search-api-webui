@@ -122,9 +122,22 @@ create_dmg() {
     print_msg "$BLUE" "Creating custom layout..."
     create_ds_store "$mount_point"
 
-    # Unmount
+    # Unmount with retry
     print_msg "$BLUE" "Unmounting DMG..."
-    hdiutil detach "$device"
+    # Wait a bit to ensure all operations are complete
+    sleep 2
+    # Force unmount if normal detach fails
+    if ! hdiutil detach "$device" 2>/dev/null; then
+        print_msg "$YELLOW" "Normal detach failed, trying force detach..."
+        sleep 1
+        hdiutil detach "$device" -force || {
+            print_msg "$RED" "Force detach failed, killing processes..."
+            # Kill any processes using the mount point
+            lsof "$mount_point" 2>/dev/null | awk 'NR>1 {print $2}' | xargs -r kill 2>/dev/null || true
+            sleep 1
+            hdiutil detach "$device" -force
+        }
+    fi
 
     # Convert to compressed DMG
     print_msg "$BLUE" "Compressing DMG..."
