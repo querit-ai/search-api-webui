@@ -12,18 +12,23 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      build_wheel:
+        description: 'Build Python Wheel'
+        type: boolean
+        required: false
+        default: false
       build_dmg:
-        description: 'Build macOS DMG (in addition to wheel)'
+        description: 'Build macOS DMG'
         type: boolean
         required: false
         default: false
       build_windows:
-        description: 'Build Windows installer (in addition to wheel)'
+        description: 'Build Windows installer'
         type: boolean
         required: false
         default: false
       build_android:
-        description: 'Build Android APK (in addition to wheel)'
+        description: 'Build Android APK'
         type: boolean
         required: false
         default: false
@@ -122,8 +127,8 @@ jobs:
     runs-on: ubuntu-latest
     # Only run wheel build if:
     # 1. Push to a tag (v*) OR
-    # 2. Manual trigger (always build wheel for workflow_dispatch)
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    # 2. Manual trigger with build_wheel=true
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_wheel == 'true')
     permissions:
       contents: write
       id-token: write  # Required for trusted publishing to PyPI
@@ -259,7 +264,9 @@ jobs:
 
       - name: Build APK with Buildozer
         run: |
-          buildozer android debug
+          yes | buildozer android debug
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
 
       - name: List built files
         run: |
