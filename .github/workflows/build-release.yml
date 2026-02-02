@@ -1,4 +1,4 @@
-name: Build Wheel, Mac App and Windows App
+name: Build Release Packages
 
 permissions:
   contents: write
@@ -19,6 +19,11 @@ on:
         default: false
       build_windows:
         description: 'Build Windows installer (in addition to wheel)'
+        type: boolean
+        required: false
+        default: false
+      build_android:
+        description: 'Build Android APK (in addition to wheel)'
         type: boolean
         required: false
         default: false
@@ -185,9 +190,170 @@ jobs:
         with:
           skip-existing: true
 
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    # Only run APK build if:
+    # 1. Push to a tag (v*) OR
+    # 2. Manual trigger with build_android=true
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_android == 'true')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-global-
+
+      - name: Cache Buildozer local directory
+        uses: actions/cache@v4
+        with:
+          path: .buildozer
+          key: buildozer-local-${{ hashFiles('buildozer.spec') }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            buildozer-local-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            python3-pip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            automake \
+            gettext \
+            libltdl-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer cython
+
+      - name: Install npm dependencies and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify frontend build
+        run: |
+          echo "Checking frontend/dist directory:"
+          ls -la frontend/dist/
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses || true
+
+      - name: Build APK with Buildozer
+        run: |
+          buildozer android debug
+
+      - name: List built files
+        run: |
+          echo "Files in bin/:"
+          ls -lh bin/ || echo "No bin directory found"
+          echo ""
+          echo "Files in .buildozer/android/platform/build-*/output:"
+          find .buildozer/android/platform -name "*.apk" -type f || echo "No APK files found"
+
+      - name: Find and rename APK
+        id: find_apk
+        run: |
+          # Find the APK file
+          APK_PATH=$(find .buildozer/android/platform/build-*/output -name "*.apk" -type f | head -1)
+
+          if [ -z "$APK_PATH" ]; then
+            # Fallback: check bin directory
+            APK_PATH=$(find bin -name "*.apk" -type f | head -1)
+          fi
+
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: No APK file found!"
+            exit 1
+          fi
+
+          echo "Found APK at: $APK_PATH"
+
+          # Create bin directory if it doesn't exist
+          mkdir -p bin
+
+          # Copy and rename APK
+          VERSION="${{ steps.get_version.outputs.version }}"
+          NEW_NAME="bin/SearchAPIWebUI-${VERSION}-android-debug.apk"
+          cp "$APK_PATH" "$NEW_NAME"
+
+          echo "apk_path=$NEW_NAME" >> $GITHUB_OUTPUT
+          echo "Renamed APK to: $NEW_NAME"
+
+          # Show APK info
+          ls -lh "$NEW_NAME"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-android
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload to Release (if tagged)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_apk.outputs.apk_path }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   add-release-notes:
     name: Add Release Notes
-    needs: [build-macos, build-python-wheel, build-windows]
+    needs: [build-macos, build-python-wheel, build-windows, build-android]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -218,6 +384,9 @@ jobs:
           - SearchAPIWebUI-Windows-x64-Setup.exe: For 64-bit Windows systems
           - SearchAPIWebUI-Windows-x86-Setup.exe: For 32-bit Windows systems
 
+          ## Android Distribution
+          - SearchAPIWebUI-{version}-android-debug.apk: For Android devices (API 21+)
+
           ### Installation
           Python package:
             pip install search_api_webui-{version}-py3-none-any.whl
@@ -235,6 +404,12 @@ jobs:
 
           Most modern Windows systems should use the x64 version.
           Only use x86 version for older 32-bit Windows systems.
+
+          Android app:
+            Download and install the APK file on your Android device.
+
+          You may need to enable "Install from unknown sources" in your device settings.
+          Minimum Android version: 5.0 (API level 21).
           EOF
 
           echo "Created release notes"
