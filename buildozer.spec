@@ -36,7 +36,8 @@ version = 0.2.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,flask,flask-cors,requests,pyyaml,jmespath,querit,certifi,charset-normalizer,click,blinker,idna,itsdangerous,jinja2,markupsafe,urllib3,werkzeug
+# Optimized: only include essential packages, others will be bundled as wheels
+requirements = python3,kivy,flask,requests,pyyaml
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -253,9 +254,10 @@ android.release_artifact = apk
 # Setting this to false will pass --ignore-setup-py, true will pass --use-setup-py
 # NOTE: this is general setuptools integration, having pyproject.toml is enough, no need to generate
 # setup.py if you're using Poetry, but you need to set this to true to get the behaviour setuptools.
-#p4a.setup_py = false
+p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
+p4a.extra_args = --use-setup-py
 #p4a.extra_args =
 
 
