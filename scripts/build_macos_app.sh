@@ -126,7 +126,7 @@ build_frontend() {
     # Always install npm dependencies to ensure platform-specific binaries are correct
     # This is especially important for rollup which has platform-specific native modules
     print_msg "$BLUE" "Installing npm dependencies..."
-    npm install
+    npm ci
 
     # Build frontend
     print_msg "$BLUE" "Building frontend assets..."

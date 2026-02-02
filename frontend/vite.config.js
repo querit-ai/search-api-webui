@@ -7,6 +7,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Optimize for mobile
+    target: 'es2015',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
   },
   server: {
     proxy: {

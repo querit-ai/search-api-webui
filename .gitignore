@@ -22,3 +22,10 @@ frontend/dist/
 build/
 dist/
 *.egg-info/
+
+# Android keystore files (should never be committed)
+*.keystore
+*.jks
+
+# Legacy/test directories (Android project is in frontend/android/)
+/android/

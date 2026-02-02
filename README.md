@@ -1,6 +1,6 @@
 # Search API WebUI
 
-Python WebUI with native Mac/Windows Apps for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel etc.).
+A lightweight, cross-platform WebUI and native app (macOS, Windows, Android) for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel, Serper etc.).
 
 ![Screenshot](docs/images/screenshot.webp)
 
@@ -54,6 +54,22 @@ For Windows users, you can download the installer from the GitHub Releases page:
 **Note**:
 - The installer requires .NET Framework 4.5 or later (usually pre-installed on Windows 8+)
 - Windows Defender SmartScreen may show a warning for unsigned applications. Click "More info" → "Run anyway" to proceed
+
+### Android Installation
+
+For Android users (Android 7.0+):
+
+1. Visit the [Releases page](https://github.com/querit-ai/search-api-webui/releases)
+2. Download `SearchAPIWebUI-<version>.apk`
+3. Enable "Install from Unknown Sources" in device settings
+4. Install the APK
+5. Launch from app drawer
+
+**Note**: The Android app runs a local Flask server, so no internet is required for the app itself (only for API calls). The APK is signed with a debug certificate for easy distribution.
+
+### Prerequisites
+
+Python 3.7+
 
 ### Install via Pip
 
@@ -116,6 +132,41 @@ make build-app    # Build only the .app bundle (without DMG)
 make ARCH=arm64 dmg   # Force Apple Silicon build
 make ARCH=x86_64 dmg  # Force Intel build (requires x86_64 Python)
 ```
+
+**Build Windows Installer** (Windows only)
+
+```bash
+make exe              # Builds Windows installer for your current architecture
+make build-windows-app # Build only the Windows application (without installer)
+# Override architecture if needed:
+make WIN_ARCH=x64 exe  # Force 64-bit build
+make WIN_ARCH=x86 exe  # Force 32-bit build
+```
+
+**Build Android APK**
+
+```bash
+make android          # Build release APK (ready to install)
+```
+
+Prerequisites for Android build:
+- Android SDK (will be auto-detected from common locations)
+- JDK 17 or later (will be auto-detected from common locations)
+- Node.js & npm
+
+**Note:** The build script automatically detects Android SDK and Java from standard installation locations. If auto-detection fails, you can manually set:
+```bash
+export ANDROID_HOME=/path/to/android-sdk
+export JAVA_HOME=/path/to/jdk
+```
+
+The built APK will be in `dist/SearchAPIWebUI-<version>.apk`.
+
+Development workflow:
+1. Make changes to frontend or backend code
+2. Run `make android` to build release APK
+3. Transfer APK to device via network/cloud/USB
+4. Install APK on device manually
 
 ### Manual Setup
 

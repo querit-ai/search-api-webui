@@ -1,3 +1,4 @@
+import API_BASE_URL from '../config';
 /*
  * Copyright (c) 2026 QUERIT PRIVATE LIMITED
  *
@@ -32,12 +33,12 @@ import {
     Loader2,
     AlertCircle
 } from 'lucide-react';
-import { Button } from './components/Button';
-import { Input } from './components/Input';
-import { Card } from './components/Card';
-import { Badge } from './components/Badge';
-import { ResultItem } from './components/ResultItem';
-import { cn } from './lib/utils';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { Card } from '../components/Card';
+import { Badge } from '../components/Badge';
+import { ResultItem } from '../components/ResultItem';
+import { cn } from '../lib/utils';
 
 function ArenaPage() {
     const navigate = useNavigate();
@@ -55,7 +56,7 @@ function ArenaPage() {
 
     // Initial Load
     useEffect(() => {
-        fetch('/api/providers')
+        fetch(API_BASE_URL + '/api/providers')
             .then((res) => res.json())
             .then((data) => {
                 setProviders(data);
@@ -73,7 +74,7 @@ function ArenaPage() {
     const performSearch = async (provider, queryText) => {
         try {
             const start = performance.now();
-            const res = await fetch('/api/search', {
+            const res = await fetch(API_BASE_URL + '/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: queryText, provider: provider }),

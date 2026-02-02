@@ -20,19 +20,23 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Key, Save, Server, Code, Trash2, Settings2 } from 'lucide-react';
-import { Button } from './components/Button';
-import { Input } from './components/Input';
-import { Card } from './components/Card';
-import { Badge } from './components/Badge';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { Card } from '../components/Card';
+import { Badge } from '../components/Badge';
+import API_BASE_URL from '../config';
 
 function ConfigPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [providers, setProviders] = useState([]);
     const [selectedName, setSelectedName] = useState('');
+
+    // Ref for API Key input (to read DOM value directly on Android)
+    const apiKeyInputRef = useRef(null);
 
     // Config States
     const [hasKey, setHasKey] = useState(false);
@@ -55,7 +59,7 @@ function ConfigPage() {
     }, []);
 
     const fetchProviders = () => {
-        fetch('/api/providers')
+        fetch(API_BASE_URL + '/api/providers')
             .then(res => res.json())
             .then(data => {
                 setProviders(data);
@@ -124,7 +128,7 @@ function ConfigPage() {
         setSaving(true);
         try {
             // Sending empty key implies deletion
-            await fetch('/api/config', {
+            await fetch(API_BASE_URL + '/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -149,8 +153,23 @@ function ConfigPage() {
     };
 
     const handleSave = async () => {
+        // 🔧 FIX: Read current value from DOM as fallback for Android WebView paste issue
+        // React's state might not update in time due to async nature, especially on Android
+        let currentApiKey = apiKey;
+
+        // If state is empty, try reading directly from the input element using ref
+        if (!currentApiKey.trim() && apiKeyInputRef.current) {
+            const domValue = apiKeyInputRef.current.value;
+            if (domValue) {
+                currentApiKey = domValue;
+                console.log('[ConfigPage] Retrieved from DOM (length):', currentApiKey.length);
+                // Sync state with DOM value
+                setApiKey(currentApiKey);
+            }
+        }
+
         // Validation: If no key stored and input is empty, warn user
-        if (!hasKey && !apiKey.trim()) {
+        if (!hasKey && !currentApiKey.trim()) {
             alert('Please enter an API Key.');
             return;
         }
@@ -159,7 +178,7 @@ function ConfigPage() {
         try {
             const payload = {
                 provider: selectedName,
-                api_key: apiKey,
+                api_key: currentApiKey,  // Use the DOM-verified value
                 api_url: apiUrl,
                 limit: limit,
                 language: language,
@@ -168,13 +187,13 @@ function ConfigPage() {
                 skip_warmup: skipWarmup
             };
 
-            // If hasKey is true but apiKey is empty, allow updating only advanced settings
+            // If hasKey is true but currentApiKey is empty, allow updating only advanced settings
             // The backend will preserve the existing API key
-            if (hasKey && !apiKey) {
+            if (hasKey && !currentApiKey) {
                 delete payload.api_key;
             }
 
-            await fetch('/api/config', {
+            await fetch(API_BASE_URL + '/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -271,6 +290,7 @@ function ConfigPage() {
 
                             {/* Input for New/Update Key */}
                             <Input
+                                ref={apiKeyInputRef}
                                 type="password"
                                 placeholder={hasKey
                                     ? 'Enter API Key to update...'
@@ -351,6 +371,12 @@ function ConfigPage() {
                                             placeholder="http://proxy.example.com:8080"
                                             value={proxyUrl}
                                             onChange={(e) => setProxyUrl(e.target.value)}
+                                            onInput={(e) => setProxyUrl(e.target.value)}
+                                            onPaste={(e) => {
+                                                setTimeout(() => {
+                                                    setProxyUrl(e.target.value);
+                                                }, 0);
+                                            }}
                                             className="font-mono text-sm"
                                         />
                                         <p className="text-xs text-gray-500">

@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv-*/
+requirements.txt
+
+# Frontend / Node
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+
+# Android
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
+frontend/android/app/src/main/python/
+frontend/android/local.properties
+frontend/android/.idea/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# iOS (for future)
+frontend/ios/App/build/
+frontend/ios/App/Pods/
+frontend/ios/App/*.xcworkspace
+
+# Capacitor
+frontend/android/capacitor-cordova-android-plugins/
+frontend/ios/capacitor-cordova-ios-plugins/
+
+# IDE
+.id*/
+.vs*/
+.co*/
+.tr*/
+.hi*/
+.ba*/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Android SDK (should not be in repo)
+cmdline-tools/
+emulator/
+system-images/
+licenses/
+frontend/build-tools/
+frontend/platforms/
+frontend/licenses/
+
+# Temporary files
+.knownPackages
+frontend/src/*.bak
+frontend/public/AppIcon.iconset/

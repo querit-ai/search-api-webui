@@ -26,4 +26,47 @@
 
 body {
     @apply bg-gray-50 text-gray-900;
+    /* Add safe area padding for edge-to-edge display on mobile */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile optimizations */
+@layer base {
+    /* Prevent text size adjustment on orientation change */
+    html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
+
+    /* Better touch targets on mobile */
+    @media (max-width: 768px) {
+        button, a, input, select, textarea {
+            min-height: 44px;
+        }
+
+        /* Reduce animations on mobile for better performance */
+        * {
+            animation-duration: 0.3s !important;
+            transition-duration: 0.2s !important;
+        }
+    }
+
+    /* Improve scrolling performance on mobile */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fix viewport height on mobile browsers */
+    body {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+
+    html {
+        height: -webkit-fill-available;
+    }
 }

@@ -1,4 +1,4 @@
-.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app
+.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app android android-clean check-android
 
 # Get version from pyproject.toml
 VERSION := $(shell grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -40,6 +40,7 @@ help:
 	@echo "  make dev          Start development servers (frontend + backend)"
 	@echo "  make dmg          Build macOS DMG (complete package)"
 	@echo "  make exe          Build Windows installer (complete package)"
+	@echo "  make android      Build Android APK (release)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make backend      Start backend server only"
@@ -52,6 +53,9 @@ help:
 	@echo ""
 	@echo "Windows App Build:"
 	@echo "  make build-windows-app        Build Windows application"
+	@echo ""
+	@echo "Android Build:"
+	@echo "  make android           Build release APK (unsigned)"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        Clean build artifacts"
@@ -102,15 +106,24 @@ test:
 
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf build/SearchAPIWebUI dist/SearchAPIWebUI dist/SearchAPIWebUI.app
-	@rm -f dist/SearchAPIWebUI-*-macOS-*.dmg dist/temp-*.dmg
-	@rm -f dist/SearchAPIWebUI-*-Windows-*-Setup.exe
-	@rm -rf dist/*.whl build
+	@rm -rf build/
+	@rm -rf dist/
+	@rm -rf *.egg-info/
+	@rm -rf frontend/dist/
 	@echo "✓ Clean complete"
 
 clean-all: clean
 	@echo "Cleaning virtual environment..."
 	@rm -rf $(VENV) venv-windows-build venv-macos-build requirements.txt
+	@echo "Cleaning Android build cache..."
+	@rm -rf frontend/android/app/build
+	@rm -rf frontend/android/.gradle
+	@rm -rf frontend/android/build
+	@rm -rf frontend/android/capacitor-cordova-android-plugins
+	@echo "Cleaning node_modules..."
+	@rm -rf frontend/node_modules
+	@echo "Cleaning legacy directories..."
+	@rm -rf android/
 	@echo "✓ Clean all complete"
 
 $(VENV)/bin/pip-compile:
@@ -187,3 +200,25 @@ exe: check-windows build-windows-app
 build-windows-app: check-windows
 	@echo "Building Windows app for $(WIN_ARCH)..."
 	@bash scripts/build_windows_app.sh $(WIN_ARCH)
+
+# Android build targets
+check-android:
+	@if [ ! -d "frontend/android" ]; then \
+		echo "Error: Android project not found. Run 'cd frontend && npx cap add android' first"; \
+		exit 1; \
+	fi
+	@echo "Note: Android SDK and Java will be auto-detected by build script"
+	@echo "      If detection fails, you can set ANDROID_HOME and JAVA_HOME manually"
+
+android: check-android frontend/node_modules
+	@echo "========================================="
+	@echo "Building Android APK (Release)"
+	@echo "========================================="
+	@bash scripts/build_android.sh
+
+android-clean:
+	@echo "Cleaning Android build artifacts..."
+	@rm -rf frontend/android/app/build
+	@rm -rf frontend/android/.gradle
+	@rm -f dist/SearchAPIWebUI-*.apk
+	@echo "✓ Android clean complete"

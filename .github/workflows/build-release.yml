@@ -1,4 +1,4 @@
-name: Build Wheel, Mac App and Windows App
+name: Build Wheel, macOS App, Windows App, and Android APK
 
 permissions:
   contents: write
@@ -22,7 +22,11 @@ on:
         type: boolean
         required: false
         default: false
-
+      build_android:
+        description: 'Build Android APK'
+        type: boolean
+        required: false
+        default: false
 jobs:
   build-macos:
     name: Build macOS ${{ matrix.arch }}
@@ -131,8 +135,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Install npm dependencies and build frontend
         working-directory: frontend
@@ -185,67 +187,6 @@ jobs:
         with:
           skip-existing: true
 
-  add-release-notes:
-    name: Add Release Notes
-    needs: [build-macos, build-python-wheel, build-windows]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-
-      - name: Create release notes
-        run: |
-          mkdir -p dist
-          cat > dist/RELEASE_NOTES.txt << 'EOF'
-          Search API WebUI - Release
-
-          ## Python Package
-          - search_api_webui-{version}-py3-none-any.whl: Universal Python wheel package (cross-platform)
-
-          ## macOS Distribution
-          - SearchAPIWebUI-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3) Macs
-          - SearchAPIWebUI-macOS-x86_64.dmg: For Intel Macs
-
-          ## Windows Distribution
-          - SearchAPIWebUI-Windows-x64-Setup.exe: For 64-bit Windows systems
-          - SearchAPIWebUI-Windows-x86-Setup.exe: For 32-bit Windows systems
-
-          ### Installation
-          Python package:
-            pip install search_api_webui-{version}-py3-none-any.whl
-
-          macOS app:
-            Download and install the appropriate DMG for your system.
-
-          Apple Silicon users should use the arm64 version for best performance.
-          Intel Mac users should use the x86_64 version.
-
-          Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
-
-          Windows app:
-            Download and run the appropriate Setup.exe for your system.
-
-          Most modern Windows systems should use the x64 version.
-          Only use x86 version for older 32-bit Windows systems.
-          EOF
-
-          echo "Created release notes"
-
-      - name: Upload release notes
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: dist/RELEASE_NOTES.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-windows:
     name: Build Windows ${{ matrix.arch }}
     runs-on: windows-latest
@@ -270,6 +211,25 @@ jobs:
           python-version: '3.11'
           architecture: ${{ matrix.arch }}
 
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    # Only run Android build if:
+    # 1. Push to a tag (v*) OR
+    # 2. Manual trigger with build_android=true
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_android == 'true')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -277,99 +237,32 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Cache Python virtual environment
-        uses: actions/cache@v4
-        with:
-          path: venv-windows-build
-          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.arch }}-python-
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies and build
-        shell: bash
-        env:
-          PYTHONIOENCODING: utf-8
-        run: |
-          set -e
-          echo "Python version:"
-          python --version
-          echo "Python location:"
-          which python
-          echo ""
-          chmod +x scripts/build_windows_app.sh
-          ./scripts/build_windows_app.sh ${{ matrix.arch }}
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Get version from pyproject.toml
         id: get_version
-        shell: bash
         run: |
           VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Install Inno Setup
-        shell: powershell
-        run: choco install innosetup -y
-
-      - name: Sign Windows Application
-        shell: powershell
-        env:
-          CI: true
-        run: |
-          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
-          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
-
-          if ($certBase64 -and $certPassword) {
-            Write-Host "Using certificate from GitHub Secrets"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -CertificateBase64 $certBase64 -CertificatePassword $certPassword -ExportCert
-          } else {
-            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -ExportCert
-          }
-
-      - name: Create Windows Installer
-        shell: powershell
-        run: |
-          powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1 -Arch ${{ matrix.arch }}
-
-      - name: Sign Windows Installer
-        shell: powershell
-        env:
-          CI: true
-        run: |
-          $version = (Select-String -Path pyproject.toml -Pattern 'version\s*=\s*"([^"]+)"').Matches.Groups[1].Value
-          $installerPath = "dist/SearchAPIWebUI-$version-Windows-${{ matrix.arch }}-Setup.exe"
-
-          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
-          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
-
-          if ($certBase64 -and $certPassword) {
-            Write-Host "Using certificate from GitHub Secrets"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath -CertificateBase64 $certBase64 -CertificatePassword $certPassword
-          } else {
-            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath
-          }
+      - name: Build Android APK using build script
+        run: bash scripts/build_android.sh
 
       - name: List built files
-        shell: bash
         run: |
           echo "Files in dist/:"
           ls -lh dist/
 
-      - name: Upload installer artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}
-          path: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}-Setup.exe
+          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-android
+          path: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -377,8 +270,75 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}-Setup.exe
+          files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}.apk
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  add-release-notes:
+    name: Add Release Notes
+    needs: [build-macos, build-python-wheel, build-windows, build-android]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create release notes
+        run: |
+          mkdir -p dist
+          cat > dist/RELEASE_NOTES.txt << EOF
+          Search API WebUI - Release
+
+          ## Python Package
+          - search_api_webui-${version}-py3-none-any.whl: Universal Python wheel package (cross-platform)
+
+          ## macOS Distribution
+          - SearchAPIWebUI-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3) Macs
+          - SearchAPIWebUI-macOS-x86_64.dmg: For Intel Macs
+
+          ## Windows Distribution
+          - SearchAPIWebUI-Windows-x64-Setup.exe: For 64-bit Windows systems (most common)
+          - SearchAPIWebUI-Windows-x86-Setup.exe: For 32-bit Windows systems
+
+          ## Android Distribution
+          - SearchAPIWebUI-{version}.apk: For Android 7.0+ devices (ready to install)
+
+          ### Installation
+          Python package:
+            pip install search_api_webui-{version}-py3-none-any.whl
+
+          macOS app:
+            Download and install the appropriate DMG for your system.
+            Apple Silicon users should use the arm64 version for best performance.
+            Intel Mac users should use the x86_64 version.
+            Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
+
+          Windows app:
+            Download and run the Setup executable for your system architecture.
+            64-bit version is recommended for modern Windows systems.
+            Only use x86 version for older 32-bit Windows systems.
+
+          Android app:
+            Download the APK and enable "Install from Unknown Sources" in device settings.
+            The app runs a local Flask server, so no internet is required for the app itself (only for API calls).
+            Note: Signed with debug certificate for easy distribution (not for Google Play Store).
+          EOF
+
+          echo "Created release notes"
+
+      - name: Upload release notes
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: dist/RELEASE_NOTES.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

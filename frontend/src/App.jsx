@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SearchPage from './SearchPage';
-import ConfigPage from './ConfigPage';
-import ArenaPage from './ArenaPage';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import SearchPage from './pages/SearchPage';
+import ConfigPage from './pages/ConfigPage';
+import ArenaPage from './pages/ArenaPage';
 import './App.css';
 
 function App() {

@@ -1,3 +1,4 @@
+import API_BASE_URL from '../config';
 /*
  * Copyright (c) 2026 QUERIT PRIVATE LIMITED
  *
@@ -35,12 +36,12 @@ import {
     XCircle,
     Swords
 } from 'lucide-react';
-import { Button } from './components/Button';
-import { Input } from './components/Input';
-import { Card } from './components/Card';
-import { Badge } from './components/Badge';
-import { ResultItem } from './components/ResultItem';
-import { cn } from './lib/utils';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { Card } from '../components/Card';
+import { Badge } from '../components/Badge';
+import { ResultItem } from '../components/ResultItem';
+import { cn } from '../lib/utils';
 
 function SearchPage() {
     const navigate = useNavigate();
@@ -60,7 +61,7 @@ function SearchPage() {
 
     // Initial Load
     useEffect(() => {
-        fetch('/api/providers')
+        fetch(API_BASE_URL + '/api/providers')
             .then((res) => res.json())
             .then((data) => {
                 setProviders(data);
@@ -114,7 +115,7 @@ function SearchPage() {
         setError(null);
 
         try {
-            const res = await fetch('/api/search', {
+            const res = await fetch(API_BASE_URL + '/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
