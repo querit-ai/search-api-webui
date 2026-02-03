@@ -228,27 +228,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
+      - name: Restore Buildozer global directory cache
+        id: cache-buildozer-global
+        uses: actions/cache/restore@v4
         with:
           path: /root/.buildozer
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
             buildozer-global-
 
-      - name: Cache Buildozer local directory
-        uses: actions/cache@v4
+      - name: Restore Buildozer local directory cache
+        id: cache-buildozer-local
+        uses: actions/cache/restore@v4
         with:
           path: .buildozer
           key: buildozer-local-${{ hashFiles('buildozer.spec') }}-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             buildozer-local-
 
-      - name: Cache Python-for-Android build artifacts
-        uses: actions/cache@v4
+      - name: Restore Python-for-Android build artifacts cache
+        id: cache-p4a-build
+        uses: actions/cache/restore@v4
         with:
           path: |
-            .buildozer/android/platform/build-armeabi-v7a
             .buildozer/android/platform/build-arm64-v8a
           key: p4a-build-${{ runner.os }}-${{ hashFiles('buildozer.spec', 'requirements.txt') }}
           restore-keys: |
@@ -272,7 +274,22 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Build APK with Buildozer
+      - name: Download and setup Android SDK/NDK (cached)
+        run: |
+          yes | buildozer android update
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
+        continue-on-error: true
+
+      - name: Build Python for Android distributions (cached)
+        run: |
+          yes | buildozer android p4a -- distributions
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
+          MAKEFLAGS: -j4
+        continue-on-error: true
+
+      - name: Build APK
         run: |
           yes | buildozer -v android debug
         env:
