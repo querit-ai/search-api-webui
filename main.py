@@ -3,6 +3,7 @@
 # Android entry point for Search API WebUI using Kivy + Buildozer
 # This file enables packaging the Flask app into an Android APK
 
+import os
 import time
 from threading import Thread
 
@@ -10,10 +11,27 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from android.runnable import run_on_ui_thread
+from android.permissions import request_permissions, Permission
 from jnius import autoclass
 
 # Import the Flask app
 from search_api_webui.app import app as flask_app
+
+
+# Request Android permissions at startup
+def request_android_permissions():
+    '''
+    Request necessary Android permissions for storage access.
+    Must be called before Kivy initializes.
+    '''
+    try:
+        request_permissions([
+            Permission.WRITE_EXTERNAL_STORAGE,
+            Permission.READ_EXTERNAL_STORAGE,
+            Permission.INTERNET,
+        ])
+    except Exception as e:
+        print(f'Permission request error: {e}')
 
 
 # Android WebView classes
@@ -134,6 +152,10 @@ def main():
     '''
     Application entry point.
     '''
+    # Request permissions before starting app
+    request_android_permissions()
+
+    # Start the Kivy app
     SearchWebViewApp().run()
 
 
