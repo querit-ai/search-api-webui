@@ -12,21 +12,20 @@ package.domain = ai.querit
 # (str) Source code where the main.py live
 source.dir = .
 
+# (str) Path to the main.py file (relative to source.dir)
+source.main = scripts/main_android.py
+
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,yaml,json,html,css,js,txt,ttf,otf,svg,woff,woff2
 
 # (list) List of inclusions using pattern matching
-source.include_patterns = search_api_webui/*,search_api_webui/**/*,frontend/dist/*,frontend/dist/**/*
+source.include_patterns = scripts/main_android.py,search_api_webui/*,search_api_webui/**/*,frontend/dist/*,frontend/dist/**/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
 source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 source.exclude_dirs = tests,bin,venv,venv-dev,.git,.github,build,dist,docs
-
-# (str) Path to the main.py file (relative to source.dir)
-# Note: main.py is in scripts/ but will be copied to root during build
-source.main = scripts/main_android.py
 
 # (list) List of exclusions using pattern matching
 source.exclude_patterns = *.pyc,*.pyo,*.spec,*.exe,*.dmg,*.app,*/CVS/*,*/RCS/*,*/tmp/*,*/__pycache__/*
