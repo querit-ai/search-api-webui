@@ -13,13 +13,13 @@ package.domain = ai.querit
 source.dir = .
 
 # (str) Path to the main.py file (relative to source.dir)
-source.main = main_android.py
+source.main = main.py
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,yaml,json,html,css,js,txt,ttf,otf,svg,woff,woff2
 
 # (list) List of inclusions using pattern matching
-source.include_patterns = main_android.py,search_api_webui/*,search_api_webui/**/*,frontend/dist/*,frontend/dist/**/*
+source.include_patterns = main.py,search_api_webui/*,search_api_webui/**/*,frontend/dist/*,frontend/dist/**/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
 source.exclude_exts = spec
