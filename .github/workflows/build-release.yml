@@ -279,7 +279,6 @@ jobs:
           yes | buildozer android update
         env:
           BUILDOZER_WARN_ON_ROOT: 0
-        continue-on-error: true
 
       - name: Build Python for Android distributions (cached)
         run: |
@@ -287,7 +286,6 @@ jobs:
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           MAKEFLAGS: -j4
-        continue-on-error: true
 
       - name: Build APK
         run: |
