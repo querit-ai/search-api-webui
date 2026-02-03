@@ -36,14 +36,15 @@ version = 0.2.1
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 # Optimized: only include essential packages, others will be bundled as wheels
-requirements = python3,kivy,flask,requests,pyyaml
+# Pin Flask and Werkzeug versions to ensure compatibility
+requirements = python3,kivy,flask==2.3.3,werkzeug==2.3.7,requests,pyyaml
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/frontend/public/AppIcon.png
 
 # (str) Icon of the application
 icon.filename = %(source.dir)s/frontend/public/AppIcon.png
