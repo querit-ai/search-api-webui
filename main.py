@@ -60,6 +60,22 @@ class SearchWebViewApp(App):
         self.flask_port = 5000
         self.flask_ready = False
 
+    def test_flask_connection(self):
+        """测试 Flask 是否可访问"""
+        import urllib.request
+        import time
+
+        time.sleep(3)  # 等待 Flask 启动
+
+        try:
+            response = urllib.request.urlopen('http://127.0.0.1:5000', timeout=5)
+            html = response.read().decode('utf-8')
+            print(f"✓ Flask is accessible! Response length: {len(html)}")
+            return True
+        except Exception as e:
+            print(f"✗ Flask connection failed: {e}")
+            return False
+
     def build(self):
         '''
         Build the application UI.
@@ -70,6 +86,8 @@ class SearchWebViewApp(App):
 
         # Start Flask server in background thread
         Thread(target=self.start_flask_server, daemon=True).start()
+
+        Thread(target=self.test_flask_connection, daemon=True).start()
 
         # Schedule WebView creation after Flask starts
         Clock.schedule_once(self.create_webview, 2)
