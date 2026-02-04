@@ -7,6 +7,13 @@ import os
 import time
 from threading import Thread
 
+if 'ANDROID_ARGUMENT' in os.environ:
+    app_files_dir = os.environ.get('ANDROID_PRIVATE')
+    if app_files_dir:
+        print(f"Setting HOME to Android private files dir: {app_files_dir}")
+        os.environ['HOME'] = app_files_dir
+        os.environ['XDG_CONFIG_HOME'] = app_files_dir
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
