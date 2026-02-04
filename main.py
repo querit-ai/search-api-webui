@@ -61,11 +61,10 @@ class SearchWebViewApp(App):
         self.flask_ready = False
 
     def test_flask_connection(self):
-        """测试 Flask 是否可访问"""
         import urllib.request
         import time
 
-        time.sleep(3)  # 等待 Flask 启动
+        time.sleep(3)
 
         try:
             response = urllib.request.urlopen('http://127.0.0.1:5000', timeout=5)
