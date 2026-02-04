@@ -218,11 +218,8 @@ android.release_artifact = apk
 # android.debug_artifact = apk
 
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-#android.manifest.application_attributes = android:usesCleartextTraffic="true"
+android.manifest.application_attributes = android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config"
 
-android.manifest_template = AndroidManifest.tmpl.xml
-
-#android.add_to_manifest = <application android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config">
 
 #
 # Python for android (p4a) specific
