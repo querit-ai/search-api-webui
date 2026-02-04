@@ -283,6 +283,7 @@ jobs:
 
       - name: Build APK
         run: |
+          yes | buildozer android clean
           yes | buildozer -v android debug
         env:
           BUILDOZER_WARN_ON_ROOT: 0
