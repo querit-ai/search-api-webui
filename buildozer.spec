@@ -260,7 +260,7 @@ android.release_artifact = apk
 p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-p4a.extra_args = --use-setup-py --manifest-application-attrs android:usesCleartextTraffic="true" --manifest-application-attrs android:networkSecurityConfig="@xml/network_security_config"
+p4a.extra_args = --use-setup-py --manifest-application-attrs 'android:usesCleartextTraffic="true"' --manifest-application-attrs 'android:networkSecurityConfig="@xml/network_security_config"'
 #p4a.extra_args =
 
 
