@@ -25,7 +25,7 @@ source.include_patterns = main.py,search_api_webui/*,search_api_webui/**/*,front
 source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests,bin,venv,venv-dev,.git,.github,build,dist,docs
+source.exclude_dirs = tests,bin,venv,venv-dev,.git,.github,build,dist,docs,frontend/node_modules
 
 # (list) List of exclusions using pattern matching
 source.exclude_patterns = *.pyc,*.pyo,*.spec,*.exe,*.dmg,*.app,*/CVS/*,*/RCS/*,*/tmp/*,*/__pycache__/*
@@ -215,6 +215,9 @@ android.release_artifact = apk
 
 # (str) The format used to package the app for debug mode (apk or aar).
 # android.debug_artifact = apk
+
+# (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
+android.manifest.application_attributes = android:usesCleartextTraffic="true"
 
 #
 # Python for android (p4a) specific
