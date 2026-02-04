@@ -180,6 +180,7 @@ android.accept_sdk_license = True
 # android.add_resources = legal_resources
 android.add_resources = network_security_config.xml:xml/network_security_config.xml
 
+
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
 # Only build arm64-v8a for faster builds (covers 95%+ of modern Android devices)
@@ -221,7 +222,7 @@ android.release_artifact = apk
 
 android.manifest_template = AndroidManifest.tmpl.xml
 
-android.add_to_manifest = <application android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config">
+#android.add_to_manifest = <application android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config">
 
 #
 # Python for android (p4a) specific
