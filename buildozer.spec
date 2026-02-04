@@ -218,7 +218,7 @@ android.release_artifact = apk
 # android.debug_artifact = apk
 
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-android.manifest.application_attributes = android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config"
+#android.manifest.application_attributes = android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config"
 
 
 #
@@ -260,7 +260,7 @@ android.manifest.application_attributes = android:usesCleartextTraffic="true" an
 p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-p4a.extra_args = --use-setup-py
+p4a.extra_args = --use-setup-py --manifest-application-attrs android:usesCleartextTraffic="true" --manifest-application-attrs android:networkSecurityConfig="@xml/network_security_config"
 #p4a.extra_args =
 
 
