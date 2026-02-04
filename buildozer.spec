@@ -178,7 +178,7 @@ android.accept_sdk_license = True
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of these containing resources of one kind
 # android.add_resources = legal_resources
-android.add_resources = xml_config:xml
+#android.add_resources = 
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
@@ -217,7 +217,9 @@ android.release_artifact = apk
 # android.debug_artifact = apk
 
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-android.manifest.application_attributes = android:networkSecurityConfig="@xml/network_security_config" android:usesCleartextTraffic="true" android:allowBackup="true"
+android.manifest.application_attributes = android:usesCleartextTraffic="true"
+
+android.manifest_template = AndroidManifest.tmpl.xml
 
 #
 # Python for android (p4a) specific

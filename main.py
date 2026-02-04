@@ -85,7 +85,7 @@ class SearchWebViewApp(App):
         '''
         try:
             flask_app.run(
-                host='127.0.0.1',
+                host='0.0.0.0',
                 port=self.flask_port,
                 debug=False,
                 use_reloader=False,
@@ -129,8 +129,11 @@ class SearchWebViewApp(App):
             # Set WebViewClient to handle navigation
             self.webview.setWebViewClient(WebViewClient())
 
+            if hasattr(settings, 'setMixedContentMode'):
+                settings.setMixedContentMode(0)
+
             # Load the Flask app
-            url = f'http://127.0.0.1:{self.flask_port}'
+            url = f'http://localhost:{self.flask_port}'
             self.webview.loadUrl(url)
 
             # Replace root widget with WebView
