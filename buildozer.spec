@@ -220,7 +220,6 @@ android.release_artifact = apk
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
 android.manifest.application_attributes = 'android:usesCleartextTraffic="true"'
 
-
 #
 # Python for android (p4a) specific
 #
