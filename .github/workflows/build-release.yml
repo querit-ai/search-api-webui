@@ -295,15 +295,20 @@ jobs:
           echo "=== Searching for AndroidManifest.xml ==="
           echo "=========================================="
 
-          echo "Searching in build directories..."
-          find .buildozer/android/platform -name "AndroidManifest.xml" -type f || true
+          echo "Searching for the correct AndroidManifest.xml files..."
+          echo ""
 
-          MANIFEST=$(find .buildozer/android/platform -name "AndroidManifest.xml" -type f | head -1)
+          # First try to find the main project manifest (the one p4a generates)
+          MANIFEST=$(find .buildozer/android/platform/build-*/dists/*/src/main/AndroidManifest.xml 2>/dev/null | head -1)
 
           if [ -z "$MANIFEST" ]; then
-            echo ""
-            echo "⚠️  Not found in platform, searching entire .buildozer..."
-            MANIFEST=$(find .buildozer -name "AndroidManifest.xml" -type f | head -1)
+            # Fallback: try merged manifest (final one used by Gradle)
+            MANIFEST=$(find .buildozer/android/platform/build-*/dists/*/build/intermediates/merged_manifests/*/AndroidManifest.xml 2>/dev/null | head -1)
+          fi
+
+          if [ -z "$MANIFEST" ]; then
+            # Last resort: any manifest in dists
+            MANIFEST=$(find .buildozer/android/platform/build-*/dists/*/AndroidManifest.xml 2>/dev/null | head -1)
           fi
 
           echo ""
@@ -327,6 +332,9 @@ jobs:
               grep -n "usesCleartextTraffic" "$MANIFEST"
             else
               echo "❌ usesCleartextTraffic: NOT FOUND"
+              echo ""
+              echo "Checking all manifest files for debugging..."
+              find .buildozer/android/platform/build-*/dists -name "AndroidManifest.xml" -exec sh -c 'echo "File: {}"; grep -n "usesCleartextTraffic" "{}" || echo "  Not found"' \;
             fi
 
             echo ""
@@ -349,13 +357,13 @@ jobs:
           else
             echo "❌ AndroidManifest.xml NOT FOUND anywhere!"
             echo ""
-            echo "=== Available XML files ==="
-            find .buildozer -name "*.xml" -type f | head -20
+            echo "=== Available manifest files ==="
+            find .buildozer/android/platform/build-*/dists -name "AndroidManifest.xml" -type f 2>/dev/null || echo "No manifest files found"
           fi
 
           echo ""
           echo "=========================================="
-          echo "=== TEST COMPLETED - TERMINATING ==="
+          echo "=== TEST COMPLETED ==="
           echo "=========================================="
           exit 1
 
