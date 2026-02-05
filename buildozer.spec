@@ -218,7 +218,7 @@ android.release_artifact = apk
 # android.debug_artifact = apk
 
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-android.manifest.application_attributes = android:usesCleartextTraffic="true"
+#android.manifest.application_attributes = android:usesCleartextTraffic="true"
 
 
 #
@@ -257,10 +257,10 @@ android.manifest.application_attributes = android:usesCleartextTraffic="true"
 # Setting this to false will pass --ignore-setup-py, true will pass --use-setup-py
 # NOTE: this is general setuptools integration, having pyproject.toml is enough, no need to generate
 # setup.py if you're using Poetry, but you need to set this to true to get the behaviour setuptools.
-#p4a.setup_py = true
+p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-#p4a.extra_args = --use-setup-py --manifest-application-attrs 'android:usesCleartextTraffic="true"'
+p4a.extra_args = --manifest-application-attrs 'android:usesCleartextTraffic="true"'
 
 #
 # iOS specific
