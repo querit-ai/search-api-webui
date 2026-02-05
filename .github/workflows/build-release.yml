@@ -369,6 +369,136 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  build-android-test-manifest:
+    name: Test Android Manifest Configuration
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    container:
+      image: kivy/buildozer:latest
+      options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create dummy frontend
+        run: |
+          mkdir -p frontend/dist
+          echo '<!DOCTYPE html><html><body><h1>Test</h1></body></html>' > frontend/dist/index.html
+          echo "✓ Created dummy frontend"
+
+      - name: Restore Buildozer caches
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /root/.buildozer
+            .buildozer
+          key: buildozer-test-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-test-
+            buildozer-combined-
+            buildozer-global-
+            buildozer-local-
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Setup Android SDK/NDK
+        run: yes | buildozer android update
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
+
+      - name: Build APK (incremental)
+        run: yes | buildozer android debug
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
+          MAKEFLAGS: -j4
+        timeout-minutes: 30
+
+      - name: Verify AndroidManifest.xml
+        run: |
+          echo "=========================================="
+          echo "=== Searching for AndroidManifest.xml ==="
+          echo "=========================================="
+
+          echo "Searching in build directories..."
+          find .buildozer/android/platform -name "AndroidManifest.xml" -type f || true
+
+          MANIFEST=$(find .buildozer/android/platform -name "AndroidManifest.xml" -type f | head -1)
+
+          if [ -z "$MANIFEST" ]; then
+            echo ""
+            echo "⚠️  Not found in platform, searching entire .buildozer..."
+            MANIFEST=$(find .buildozer -name "AndroidManifest.xml" -type f | head -1)
+          fi
+
+          echo ""
+          echo "=========================================="
+          if [ -f "$MANIFEST" ]; then
+            echo "✓ Found AndroidManifest.xml at:"
+            echo "  $MANIFEST"
+            echo "=========================================="
+            echo ""
+            echo "=== FULL CONTENT ==="
+            echo ""
+            cat "$MANIFEST"
+            echo ""
+            echo "=========================================="
+            echo "=== VERIFICATION RESULTS ==="
+            echo "=========================================="
+
+            if grep -q "usesCleartextTraffic" "$MANIFEST"; then
+              echo "✅ usesCleartextTraffic: FOUND"
+              echo ""
+              grep -n "usesCleartextTraffic" "$MANIFEST"
+            else
+              echo "❌ usesCleartextTraffic: NOT FOUND"
+            fi
+
+            echo ""
+
+            if grep -q "networkSecurityConfig" "$MANIFEST"; then
+              echo "✅ networkSecurityConfig: FOUND"
+              echo ""
+              grep -n "networkSecurityConfig" "$MANIFEST"
+            else
+              echo "❌ networkSecurityConfig: NOT FOUND"
+            fi
+
+            echo ""
+            echo "=========================================="
+
+            echo "=== Application Tag Attributes ==="
+            echo "=========================================="
+            grep -A 20 "<application" "$MANIFEST" | head -25
+
+          else
+            echo "❌ AndroidManifest.xml NOT FOUND anywhere!"
+            echo ""
+            echo "=== Available XML files ==="
+            find .buildozer -name "*.xml" -type f | head -20
+          fi
+
+          echo ""
+          echo "=========================================="
+          echo "=== TEST COMPLETED - TERMINATING ==="
+          echo "=========================================="
+          exit 1
+
+      - name: Save test cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /root/.buildozer
+            .buildozer
+          key: buildozer-test-${{ hashFiles('buildozer.spec') }}-${{ github.run_id }}
+
   add-release-notes:
     name: Add Release Notes
     needs: [build-macos, build-python-wheel, build-windows, build-android]
