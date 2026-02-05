@@ -218,7 +218,10 @@ android.release_artifact = apk
 # android.debug_artifact = apk
 
 # (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-android.manifest.application_attributes = 'android:usesCleartextTraffic="true"'
+# android.manifest.application_attributes = 'android:usesCleartextTraffic="true"'
+
+# (str) Path to a file containing extra attributes for the <application> tag
+android.extra_manifest_application_arguments = android_manifest_attrs.txt
 
 #
 # Python for android (p4a) specific
@@ -313,7 +316,7 @@ ios.codesign.allowed = false
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
-warn_on_root = 1
+warn_on_root = 0
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 # build_dir = ./.buildozer
