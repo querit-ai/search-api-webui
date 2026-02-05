@@ -260,7 +260,7 @@ android.release_artifact = apk
 p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-p4a.extra_args = --manifest-application-attrs 'android:usesCleartextTraffic="true"'
+p4a.extra_args = --add-compile-option "manifestPlaceholders = [usesCleartextTraffic:'true']"
 
 #
 # iOS specific
