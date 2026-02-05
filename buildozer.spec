@@ -178,7 +178,7 @@ android.accept_sdk_license = True
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of these containing resources of one kind
 # android.add_resources = legal_resources
-android.add_resources = network_security_config.xml:xml/network_security_config.xml
+#android.add_resources = network_security_config.xml:xml/network_security_config.xml
 
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
@@ -260,8 +260,7 @@ android.release_artifact = apk
 p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-p4a.extra_args = --use-setup-py --manifest-application-attrs 'android:usesCleartextTraffic="true"' --manifest-application-attrs 'android:networkSecurityConfig="@xml/network_security_config"'
-#p4a.extra_args =
+p4a.extra_args = --use-setup-py --manifest-application-attrs 'android:usesCleartextTraffic="true"'
 
 
 #
