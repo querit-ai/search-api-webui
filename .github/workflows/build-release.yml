@@ -326,39 +326,42 @@ jobs:
             echo "=== VERIFICATION RESULTS ==="
             echo "=========================================="
 
-            if grep -q "usesCleartextTraffic" "$MANIFEST"; then
+            # Check for usesCleartextTraffic
+            if grep -q 'usesCleartextTraffic="true"' "$MANIFEST"; then
               echo "✅ usesCleartextTraffic: FOUND"
               echo ""
-              grep -n "usesCleartextTraffic" "$MANIFEST"
+              grep -n 'usesCleartextTraffic="true"' "$MANIFEST"
+              echo ""
+              echo "=========================================="
+              echo "=== Application Tag Attributes ==="
+              echo "=========================================="
+              grep -A 20 "<application" "$MANIFEST" | head -25
+              echo ""
+              echo "=========================================="
+              echo "✅ VERIFICATION PASSED"
+              echo "=========================================="
             else
               echo "❌ usesCleartextTraffic: NOT FOUND"
               echo ""
               echo "Checking all manifest files for debugging..."
               find .buildozer/android/platform/build-*/dists -name "AndroidManifest.xml" -exec sh -c 'echo "File: {}"; grep -n "usesCleartextTraffic" "{}" || echo "  Not found"' \;
-            fi
-
-            echo ""
-
-            if grep -q "networkSecurityConfig" "$MANIFEST"; then
-              echo "✅ networkSecurityConfig: FOUND"
               echo ""
-              grep -n "networkSecurityConfig" "$MANIFEST"
-            else
-              echo "❌ networkSecurityConfig: NOT FOUND"
+              echo "=========================================="
+              echo "❌ VERIFICATION FAILED"
+              echo "=========================================="
+              exit 1
             fi
-
-            echo ""
-            echo "=========================================="
-
-            echo "=== Application Tag Attributes ==="
-            echo "=========================================="
-            grep -A 20 "<application" "$MANIFEST" | head -25
 
           else
             echo "❌ AndroidManifest.xml NOT FOUND anywhere!"
             echo ""
             echo "=== Available manifest files ==="
             find .buildozer/android/platform/build-*/dists -name "AndroidManifest.xml" -type f 2>/dev/null || echo "No manifest files found"
+            echo ""
+            echo "=========================================="
+            echo "❌ VERIFICATION FAILED"
+            echo "=========================================="
+            exit 1
           fi
 
           echo ""

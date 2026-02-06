@@ -223,6 +223,7 @@ android.release_artifact = apk
 # (str) Path to a file containing extra attributes for the <application> tag
 android.extra_manifest_application_arguments = android_manifest_attrs.txt
 
+
 #
 # Python for android (p4a) specific
 #
