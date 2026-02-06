@@ -178,8 +178,7 @@ android.accept_sdk_license = True
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of these containing resources of one kind
 # android.add_resources = legal_resources
-#android.add_resources = network_security_config.xml:xml/network_security_config.xml
-
+#android.add_resources =
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
@@ -217,12 +216,8 @@ android.release_artifact = apk
 # (str) The format used to package the app for debug mode (apk or aar).
 # android.debug_artifact = apk
 
-# (str) Extra xml to write directly inside the <application> element of AndroidManifest.xml
-# android.manifest.application_attributes = 'android:usesCleartextTraffic="true"'
-
 # (str) Path to a file containing extra attributes for the <application> tag
 android.extra_manifest_application_arguments = android_manifest_attrs.txt
-
 
 #
 # Python for android (p4a) specific
@@ -260,10 +255,10 @@ android.extra_manifest_application_arguments = android_manifest_attrs.txt
 # Setting this to false will pass --ignore-setup-py, true will pass --use-setup-py
 # NOTE: this is general setuptools integration, having pyproject.toml is enough, no need to generate
 # setup.py if you're using Poetry, but you need to set this to true to get the behaviour setuptools.
-#p4a.setup_py = true
+p4a.setup_py = true
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-#p4a.extra_args =
+p4a.extra_args = --use-setup-py
 
 #
 # iOS specific
@@ -317,7 +312,7 @@ ios.codesign.allowed = false
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
-warn_on_root = 0
+warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 # build_dir = ./.buildozer
