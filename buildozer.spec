@@ -37,7 +37,7 @@ version = 0.2.1
 # comma separated e.g. requirements = sqlite3,kivy
 # Optimized: only include essential packages, others will be bundled as wheels
 # Pin Flask and Werkzeug versions to ensure compatibility
-requirements = python3,kivy,flask==2.2.5,werkzeug==2.3.3,flask-cors,requests,pyyaml,jmespath,querit,jinja2,markupsafe,click,itsdangerous,certifi,charset-normalizer,idna,urllib3
+requirements = python3,kivy,flask==2.2.5,flask-cors,requests,pyyaml,jmespath,querit
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
