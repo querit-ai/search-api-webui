@@ -313,6 +313,20 @@ function SearchPage() {
                     </form>
                 </Card>
 
+                {/* Default Link */}
+                {!searched && (
+                  <div className="text-center py-6">
+                    <a
+                      href="https://www.google.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline text-lg"
+                    >
+                      https://www.google.com
+                    </a>
+                  </div>
+                )}
+
                 {/* Error Display */}
                 {error && (
                     <div
