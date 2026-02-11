@@ -147,6 +147,14 @@ class SearchWebViewApp(App):
         '''
         Periodically check WebView title and URL for browser open signal.
         '''
+        # Schedule the actual check on UI thread
+        self.do_check_page()
+
+    @run_on_ui_thread
+    def do_check_page(self):
+        '''
+        Actual page checking logic, runs on UI thread.
+        '''
         if not self.webview:
             return
 
@@ -176,6 +184,8 @@ class SearchWebViewApp(App):
 
         except Exception as e:
             print(f'[Page Monitor] Error: {e}')
+            import traceback
+            traceback.print_exc()
 
     @run_on_ui_thread
     def open_in_browser(self, url):
@@ -191,15 +201,22 @@ class SearchWebViewApp(App):
             context.startActivity(intent)
             print('[Browser] Intent sent successfully')
 
-            # Navigate WebView back to localhost
-            if self.webview:
-                self.webview.loadUrl(f'http://localhost:{self.flask_port}')
-                # Reset title
-                self.last_title = None
+            # Navigate WebView back to localhost after a short delay
+            Clock.schedule_once(lambda dt: self.reset_webview(), 0.5)
         except Exception as e:
             print(f'[Browser] Error: {e}')
             import traceback
             traceback.print_exc()
+
+    @run_on_ui_thread
+    def reset_webview(self):
+        '''
+        Reset WebView to localhost.
+        '''
+        if self.webview:
+            self.webview.loadUrl(f'http://localhost:{self.flask_port}')
+            self.last_title = None
+            print('[Browser] WebView reset to localhost')
 
     def on_pause(self):
         '''
