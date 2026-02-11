@@ -4,7 +4,7 @@
 # This file enables packaging the Flask app into an Android APK
 
 import os
-from threading import Thread
+from threading import Thread, Timer
 
 if 'ANDROID_ARGUMENT' in os.environ:
     app_files_dir = os.environ.get('ANDROID_PRIVATE')
@@ -57,6 +57,7 @@ class SearchWebViewApp(App):
         self.flask_ready = False
         self.last_url = None
         self.last_title = None
+        self.monitor_running = False
 
     def build(self):
         '''
@@ -131,9 +132,10 @@ class SearchWebViewApp(App):
             url = f'http://localhost:{self.flask_port}'
             self.webview.loadUrl(url)
 
-            # Start URL and title monitoring
-            Clock.schedule_interval(self.check_page, 0.3)
-            print('[WebView] Started page monitoring')
+            # Start URL and title monitoring with Timer
+            self.monitor_running = True
+            self.start_monitor_timer()
+            print('[WebView] Started page monitoring with Timer')
 
             # Replace root widget with WebView
             Activity.mActivity.setContentView(self.webview)
@@ -142,6 +144,26 @@ class SearchWebViewApp(App):
 
         except Exception as e:
             print(f'WebView setup error: {e}')
+
+    def start_monitor_timer(self):
+        '''
+        Start monitoring timer.
+        '''
+        if self.monitor_running:
+            Timer(0.5, self.monitor_page).start()
+
+    def monitor_page(self):
+        '''
+        Monitor page and reschedule.
+        '''
+        if not self.monitor_running:
+            return
+
+        # Do the actual check
+        self.do_check_page()
+
+        # Reschedule
+        self.start_monitor_timer()
 
     def check_page(self, dt):
         '''
