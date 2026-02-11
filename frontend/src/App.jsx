@@ -21,27 +21,38 @@
  */
 
 function App() {
+  const handleClick = () => {
+    // Open Google in external browser
+    window.open('https://www.google.com', '_blank');
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      margin: 0,
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <a
-        href="https://www.google.com"
-        style={{
-          fontSize: '24px',
-          color: '#4285f4',
-          textDecoration: 'none'
-        }}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+    <div
+      onClick={handleClick}
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100vw',
+        margin: 0,
+        padding: 0,
+        fontFamily: 'Arial, sans-serif',
+        cursor: 'pointer',
+        backgroundColor: '#ffffff',
+        position: 'fixed',
+        top: 0,
+        left: 0
+      }}
+    >
+      <div style={{
+        fontSize: '24px',
+        color: '#4285f4',
+        textDecoration: 'none',
+        userSelect: 'none'
+      }}>
         Google
-      </a>
+      </div>
     </div>
   );
 }
