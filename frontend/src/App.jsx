@@ -22,8 +22,9 @@
 
 function App() {
   const handleClick = () => {
-    // Open Google in external browser
-    window.open('https://www.google.com', '_blank');
+    console.log('[App] Click detected, navigating to Google');
+    // Simply navigate to Google - Python will detect and intercept
+    window.location.href = 'https://www.google.com';
   };
 
   return (

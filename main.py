@@ -40,6 +40,8 @@ WebView = autoclass('android.webkit.WebView')
 WebViewClient = autoclass('android.webkit.WebViewClient')
 WebSettings = autoclass('android.webkit.WebSettings')
 Activity = autoclass('org.kivy.android.PythonActivity')
+Intent = autoclass('android.content.Intent')
+Uri = autoclass('android.net.Uri')
 
 
 class SearchWebViewApp(App):
@@ -53,6 +55,7 @@ class SearchWebViewApp(App):
         self.webview = None
         self.flask_port = 5000
         self.flask_ready = False
+        self.last_url = None
 
     def build(self):
         '''
@@ -127,6 +130,9 @@ class SearchWebViewApp(App):
             url = f'http://localhost:{self.flask_port}'
             self.webview.loadUrl(url)
 
+            # Start URL monitoring
+            Clock.schedule_interval(self.check_url, 0.5)
+
             # Replace root widget with WebView
             Activity.mActivity.setContentView(self.webview)
 
@@ -134,6 +140,36 @@ class SearchWebViewApp(App):
 
         except Exception as e:
             print(f'WebView setup error: {e}')
+
+    @run_on_ui_thread
+    def check_url(self, dt):
+        '''
+        Periodically check WebView URL and open external browser if needed.
+        '''
+        if self.webview:
+            try:
+                current_url = self.webview.getUrl()
+                if current_url and current_url != self.last_url:
+                    print(f'[URL Monitor] URL changed to: {current_url}')
+                    self.last_url = current_url
+
+                    # Check if URL contains google.com
+                    if 'google.com' in current_url and 'localhost' not in current_url:
+                        print(f'[URL Monitor] Google URL detected, opening in browser')
+                        try:
+                            context = Activity.mActivity
+                            intent = Intent()
+                            intent.setAction(Intent.ACTION_VIEW)
+                            intent.setData(Uri.parse(current_url))
+                            context.startActivity(intent)
+                            print('[URL Monitor] Browser intent sent')
+
+                            # Navigate back to localhost
+                            self.webview.loadUrl(f'http://localhost:{self.flask_port}')
+                        except Exception as e:
+                            print(f'[URL Monitor] Error opening browser: {e}')
+            except Exception as e:
+                pass  # Silently ignore errors during URL check
 
     def on_pause(self):
         '''
