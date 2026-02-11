@@ -1,14 +1,13 @@
 #!/bin/bash
 
 # Android APK Automatic Test Script
-# This script tests the deployed APK by clicking anywhere on the screen and verifying browser launch
+# This script tests the deployed APK by clicking the screen and verifying browser launch
 
 set -e  # Exit on error
 
 # Configuration
 PACKAGE_NAME="ai.querit.searchapiwebui"
 ADB_PATH="$HOME/Library/Android/sdk/platform-tools/adb"
-TEST_DIR="$HOME/test_android"
 
 # Colors for output
 RED='\033[0;31m'
@@ -62,17 +61,14 @@ fi
 
 print_success "Found running emulator"
 
-# Create test directory if it doesn't exist
-mkdir -p "$TEST_DIR"
-
 echo ""
 print_step "==========================================="
-print_step "Android APK Automatic Click Test"
+print_step "Android APK Browser Launch Test"
 print_step "==========================================="
 echo ""
 
 # Step 1: Check if app is installed
-print_step "Step 1/8: Checking if app is installed..."
+print_step "Step 1/5: Checking if app is installed..."
 if "$ADB_PATH" shell pm list packages | grep -q "$PACKAGE_NAME"; then
     print_success "App is installed: $PACKAGE_NAME"
 else
@@ -82,81 +78,52 @@ else
 fi
 
 # Step 2: Force stop app (if running)
-print_step "Step 2/8: Stopping app if running..."
+print_step "Step 2/5: Stopping app if running..."
 "$ADB_PATH" shell am force-stop "$PACKAGE_NAME" 2>/dev/null || true
 print_success "App stopped"
 sleep 1
 
-# Step 3: Get screen resolution
-print_step "Step 3/8: Getting screen resolution..."
-SCREEN_SIZE=$("$ADB_PATH" shell wm size | grep -oE '[0-9]+x[0-9]+' | head -1)
-WIDTH=$(echo "$SCREEN_SIZE" | cut -d'x' -f1)
-HEIGHT=$(echo "$SCREEN_SIZE" | cut -d'x' -f2)
-
-print_success "Screen resolution: ${WIDTH}x${HEIGHT}"
-
-# Calculate center and various test points
-CENTER_X=$((WIDTH / 2))
-CENTER_Y=$((HEIGHT / 2))
-TOP_LEFT_X=$((WIDTH / 4))
-TOP_LEFT_Y=$((HEIGHT / 4))
-BOTTOM_RIGHT_X=$((WIDTH * 3 / 4))
-BOTTOM_RIGHT_Y=$((HEIGHT * 3 / 4))
-
-print_info "Test points calculated:"
-print_info "  Center: ($CENTER_X, $CENTER_Y)"
-print_info "  Top-left quadrant: ($TOP_LEFT_X, $TOP_LEFT_Y)"
-print_info "  Bottom-right quadrant: ($BOTTOM_RIGHT_X, $BOTTOM_RIGHT_Y)"
-
-# Step 4: Start the app
-print_step "Step 4/8: Starting the app..."
+# Step 3: Start the app
+print_step "Step 3/5: Starting the app..."
 "$ADB_PATH" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 &>/dev/null
 
 print_success "App started"
 print_info "Waiting 5 seconds for app to fully load..."
 sleep 5
 
-# Step 5: Take screenshot before click
-print_step "Step 5/8: Taking screenshot before click..."
-"$ADB_PATH" shell screencap /sdcard/before_click.png
-"$ADB_PATH" pull /sdcard/before_click.png "$TEST_DIR/before_click.png" &>/dev/null
-"$ADB_PATH" shell rm /sdcard/before_click.png
-print_success "Screenshot saved: $TEST_DIR/before_click.png"
+# Step 4: Click screen (app is fullscreen clickable)
+print_step "Step 4/5: Clicking the screen..."
+# Get screen resolution for center point
+SCREEN_SIZE=$("$ADB_PATH" shell wm size | grep -oE '[0-9]+x[0-9]+' | head -1)
+WIDTH=$(echo "$SCREEN_SIZE" | cut -d'x' -f1)
+HEIGHT=$(echo "$SCREEN_SIZE" | cut -d'x' -f2)
+CENTER_X=$((WIDTH / 2))
+CENTER_Y=$((HEIGHT / 2))
 
-# Step 6: Click center of screen
-print_step "Step 6/8: Clicking center of screen..."
-print_info "Clicking at coordinates: ($CENTER_X, $CENTER_Y)"
+print_info "Clicking at screen center: ($CENTER_X, $CENTER_Y)"
 "$ADB_PATH" shell input tap "$CENTER_X" "$CENTER_Y"
 print_success "Click executed"
 
 # Wait for browser to launch
-print_info "Waiting 3 seconds for browser to launch..."
-sleep 3
+print_info "Waiting 5 seconds for browser to launch..."
+sleep 5
 
-# Step 7: Take screenshot after click
-print_step "Step 7/8: Taking screenshot after click..."
-"$ADB_PATH" shell screencap /sdcard/after_click.png
-"$ADB_PATH" pull /sdcard/after_click.png "$TEST_DIR/after_click.png" &>/dev/null
-"$ADB_PATH" shell rm /sdcard/after_click.png
-print_success "Screenshot saved: $TEST_DIR/after_click.png"
-
-# Step 8: Verify browser launched
-print_step "Step 8/8: Verifying browser launch..."
+# Step 5: Verify browser launched
+print_step "Step 5/5: Verifying external browser launch..."
 
 # Get current focused window
 CURRENT_FOCUS=$("$ADB_PATH" shell dumpsys window | grep 'mCurrentFocus' | tr -d '\r')
 print_info "Current focus: $CURRENT_FOCUS"
 
 # Check if browser is opened
-if echo "$CURRENT_FOCUS" | grep -iE 'chrome|browser|webview' > /dev/null; then
-    print_success "SUCCESS! Browser detected in current focus"
+if echo "$CURRENT_FOCUS" | grep -iE 'chrome|browser' > /dev/null; then
+    print_success "SUCCESS! External browser detected in current focus"
     RESULT="✅ PASS"
-    RESULT_MSG="Browser successfully launched!"
+    RESULT_MSG="External browser successfully launched!"
 else
-    print_error "Browser not detected in current focus"
-    print_info "This might be OK if the app uses internal WebView"
-    RESULT="⚠️  PARTIAL"
-    RESULT_MSG="Click executed but browser launch unclear"
+    print_error "External browser not detected in current focus"
+    RESULT="❌ FAIL"
+    RESULT_MSG="External browser was NOT launched"
 fi
 
 # Additional check: Get top activity
@@ -165,7 +132,7 @@ TOP_ACTIVITY=$("$ADB_PATH" shell dumpsys activity activities | grep 'mResumedAct
 print_info "Top activity: $TOP_ACTIVITY"
 
 if echo "$TOP_ACTIVITY" | grep -iE 'chrome|browser' > /dev/null; then
-    print_success "Browser activity confirmed!"
+    print_success "External browser activity confirmed!"
     RESULT="✅ PASS"
     RESULT_MSG="External browser successfully launched!"
 fi
@@ -174,8 +141,10 @@ fi
 print_info "Checking running browser processes..."
 BROWSER_PROCESS=$("$ADB_PATH" shell ps | grep -iE 'chrome|browser' | head -3)
 if [ -n "$BROWSER_PROCESS" ]; then
-    print_success "Browser process found running"
+    print_success "Browser process found running:"
     echo "$BROWSER_PROCESS"
+else
+    print_error "No browser process found"
 fi
 
 echo ""
@@ -187,22 +156,11 @@ echo ""
 echo -e "${GREEN}Result: $RESULT${NC}"
 echo -e "Message: $RESULT_MSG"
 echo ""
-echo "Screenshots saved to:"
-echo "  - Before click: $TEST_DIR/before_click.png"
-echo "  - After click:  $TEST_DIR/after_click.png"
-echo ""
-echo "To view screenshots:"
-echo "  open $TEST_DIR/before_click.png"
-echo "  open $TEST_DIR/after_click.png"
-echo ""
 
 # Show notification
 notify "Test Complete" "$RESULT_MSG"
 
 # Show dialog with results
-show_dialog "🧪 Android Click Test Complete!\n\n$RESULT\n\n$RESULT_MSG\n\nScreenshots saved to:\n$TEST_DIR/\n\nClick OK to open screenshots folder."
-
-# Open screenshots folder
-open "$TEST_DIR"
+show_dialog "🧪 Browser Launch Test Complete!\n\n$RESULT\n\n$RESULT_MSG"
 
 exit 0
