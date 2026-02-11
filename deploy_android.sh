@@ -139,23 +139,14 @@ notify "Step 2/7" "Test directory cleaned"
 print_info "Step 3/7: Downloading APK artifact..."
 cd "$TEST_DIR"
 
-# List available artifacts
-print_info "Fetching artifact list..."
-ARTIFACT_NAME=$(gh run view "$RUN_ID" --repo "$GITHUB_REPO" --json artifacts --jq '.artifacts[0].name')
-
-if [ -z "$ARTIFACT_NAME" ]; then
-    print_error "No artifacts found for this workflow run"
-    notify "Error" "No artifacts found"
-    exit 1
-fi
-
-print_info "Downloading artifact: $ARTIFACT_NAME"
+# Download all artifacts from the run (gh CLI will list them)
+print_info "Downloading artifacts from run $RUN_ID..."
 if gh run download "$RUN_ID" --repo "$GITHUB_REPO" --dir "$TEST_DIR"; then
-    print_success "Artifact downloaded successfully"
+    print_success "Artifacts downloaded successfully"
     notify "Step 3/7" "APK downloaded"
 else
-    print_error "Failed to download artifact"
-    notify "Error" "Failed to download artifact"
+    print_error "Failed to download artifacts"
+    notify "Error" "Failed to download artifacts"
     exit 1
 fi
 
