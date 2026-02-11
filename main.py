@@ -56,6 +56,7 @@ class SearchWebViewApp(App):
         self.flask_port = 5000
         self.flask_ready = False
         self.last_url = None
+        self.last_title = None
 
     def build(self):
         '''
@@ -130,8 +131,9 @@ class SearchWebViewApp(App):
             url = f'http://localhost:{self.flask_port}'
             self.webview.loadUrl(url)
 
-            # Start URL monitoring
-            Clock.schedule_interval(self.check_url, 0.5)
+            # Start URL and title monitoring
+            Clock.schedule_interval(self.check_page, 0.3)
+            print('[WebView] Started page monitoring')
 
             # Replace root widget with WebView
             Activity.mActivity.setContentView(self.webview)
@@ -141,35 +143,63 @@ class SearchWebViewApp(App):
         except Exception as e:
             print(f'WebView setup error: {e}')
 
+    def check_page(self, dt):
+        '''
+        Periodically check WebView title and URL for browser open signal.
+        '''
+        if not self.webview:
+            return
+
+        try:
+            # Check title for special marker
+            title = self.webview.getTitle()
+            if title and title != self.last_title:
+                print(f'[Page Monitor] Title changed to: {title}')
+                self.last_title = title
+
+                if title and title.startswith('OPEN_BROWSER:'):
+                    url = title.replace('OPEN_BROWSER:', '')
+                    print(f'[Page Monitor] Browser signal detected, opening: {url}')
+                    self.open_in_browser(url)
+                    return
+
+            # Also check URL
+            current_url = self.webview.getUrl()
+            if current_url and current_url != self.last_url:
+                print(f'[Page Monitor] URL changed to: {current_url}')
+                self.last_url = current_url
+
+                # Check if URL contains google.com
+                if 'google.com' in current_url and 'localhost' not in current_url:
+                    print(f'[Page Monitor] Google URL detected, opening in browser')
+                    self.open_in_browser(current_url)
+
+        except Exception as e:
+            print(f'[Page Monitor] Error: {e}')
+
     @run_on_ui_thread
-    def check_url(self, dt):
+    def open_in_browser(self, url):
         '''
-        Periodically check WebView URL and open external browser if needed.
+        Open URL in external browser on UI thread.
         '''
-        if self.webview:
-            try:
-                current_url = self.webview.getUrl()
-                if current_url and current_url != self.last_url:
-                    print(f'[URL Monitor] URL changed to: {current_url}')
-                    self.last_url = current_url
+        try:
+            print(f'[Browser] Opening URL: {url}')
+            context = Activity.mActivity
+            intent = Intent()
+            intent.setAction(Intent.ACTION_VIEW)
+            intent.setData(Uri.parse(url))
+            context.startActivity(intent)
+            print('[Browser] Intent sent successfully')
 
-                    # Check if URL contains google.com
-                    if 'google.com' in current_url and 'localhost' not in current_url:
-                        print(f'[URL Monitor] Google URL detected, opening in browser')
-                        try:
-                            context = Activity.mActivity
-                            intent = Intent()
-                            intent.setAction(Intent.ACTION_VIEW)
-                            intent.setData(Uri.parse(current_url))
-                            context.startActivity(intent)
-                            print('[URL Monitor] Browser intent sent')
-
-                            # Navigate back to localhost
-                            self.webview.loadUrl(f'http://localhost:{self.flask_port}')
-                        except Exception as e:
-                            print(f'[URL Monitor] Error opening browser: {e}')
-            except Exception as e:
-                pass  # Silently ignore errors during URL check
+            # Navigate WebView back to localhost
+            if self.webview:
+                self.webview.loadUrl(f'http://localhost:{self.flask_port}')
+                # Reset title
+                self.last_title = None
+        except Exception as e:
+            print(f'[Browser] Error: {e}')
+            import traceback
+            traceback.print_exc()
 
     def on_pause(self):
         '''

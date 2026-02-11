@@ -22,9 +22,15 @@
 
 function App() {
   const handleClick = () => {
-    console.log('[App] Click detected, navigating to Google');
-    // Simply navigate to Google - Python will detect and intercept
-    window.location.href = 'https://www.google.com';
+    console.log('[App] Click detected');
+
+    // Signal Python by changing document.title with special marker
+    document.title = 'OPEN_BROWSER:https://www.google.com';
+
+    // Also try direct navigation as backup
+    setTimeout(() => {
+      window.location.href = 'https://www.google.com';
+    }, 200);
   };
 
   return (
