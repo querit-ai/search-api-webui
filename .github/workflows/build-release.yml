@@ -4,12 +4,6 @@ permissions:
   contents: write
 
 on:
-  push:
-    branches: [main, android-back]
-    tags:
-      - 'v*'
-  pull_request:
-    branches: [main, android-back]
   workflow_dispatch:
 
 jobs:
