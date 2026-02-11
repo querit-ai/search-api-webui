@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "search-api-webui"
 version = "0.2.7"
-description = "A Search API WebUI for testing and comparing Querit, You, and other search providers."
+description = "A minimal Android WebUI application."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [
     { name = "querit.ai" }
 ]
-keywords = ["search", "api", "webui", "querit", "llm", "tool", "arena", "benchmark"]
+keywords = ["android", "webui"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
@@ -21,24 +21,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "flask>=1.1.0",
-    "flask-cors>=3.0.0",
-    "requests>=2.22.0",
-    "pyyaml>=5.3",
-    "jmespath>=0.10.0"
+    "flask>=2.2.5",
+    "flask-cors>=3.0.0"
 ]
-
-[project.optional-dependencies]
-webview = ["pywebview>=5.0"]
-build = ["pyinstaller>=6.0"]
 
 [project.urls]
 Homepage = "https://github.com/querit-ai/search-api-webui"
 Repository = "https://github.com/querit-ai/search-api-webui.git"
-Issues = "https://github.com/querit-ai/search-api-webui/issues"
-
-[project.scripts]
-search-api-webui = "search_api_webui.app:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["search_api_webui"]
@@ -51,7 +40,6 @@ include = [
 ]
 exclude = [
     "frontend",
-    "user_config.json",
     ".github"
 ]
 

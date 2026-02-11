@@ -4,13 +4,12 @@
 # This file enables packaging the Flask app into an Android APK
 
 import os
-import time
 from threading import Thread
 
 if 'ANDROID_ARGUMENT' in os.environ:
     app_files_dir = os.environ.get('ANDROID_PRIVATE')
     if app_files_dir:
-        print(f"Setting HOME to Android private files dir: {app_files_dir}")
+        print(f'Setting HOME to Android private files dir: {app_files_dir}')
         os.environ['HOME'] = app_files_dir
         os.environ['XDG_CONFIG_HOME'] = app_files_dir
 
@@ -28,15 +27,10 @@ from search_api_webui.app import app as flask_app
 # Request Android permissions at startup
 def request_android_permissions():
     '''
-    Request necessary Android permissions for storage access.
-    Must be called before Kivy initializes.
+    Request necessary Android permissions for network access.
     '''
     try:
-        request_permissions([
-            Permission.WRITE_EXTERNAL_STORAGE,
-            Permission.READ_EXTERNAL_STORAGE,
-            Permission.INTERNET,
-        ])
+        request_permissions([Permission.INTERNET])
     except Exception as e:
         print(f'Permission request error: {e}')
 
@@ -76,7 +70,7 @@ class SearchWebViewApp(App):
 
         # Return a placeholder widget
         from kivy.uix.label import Label
-        return Label(text='Loading Search API WebUI...')
+        return Label(text='Loading...')
 
     def start_flask_server(self):
         '''

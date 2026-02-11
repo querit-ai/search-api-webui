@@ -1,212 +1,21 @@
-name: Build Release Packages
+name: Build Android APK
 
 permissions:
   contents: write
 
 on:
   push:
-    branches: [main]
+    branches: [main, android-back]
     tags:
       - 'v*'
   pull_request:
-    branches: [main]
+    branches: [main, android-back]
   workflow_dispatch:
-    inputs:
-      build_wheel:
-        description: 'Build Python Wheel'
-        type: boolean
-        required: false
-        default: false
-      build_dmg:
-        description: 'Build macOS DMG'
-        type: boolean
-        required: false
-        default: false
-      build_windows:
-        description: 'Build Windows installer'
-        type: boolean
-        required: false
-        default: false
-      build_android:
-        description: 'Build Android APK'
-        type: boolean
-        required: false
-        default: false
 
 jobs:
-  build-macos:
-    name: Build macOS ${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
-    needs: [build-python-wheel]
-    # Only run DMG build if:
-    # 1. Push to a tag (v*) OR
-    # 2. Manual trigger with build_dmg=true
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_dmg == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            runner: macos-15  # M1 runner for native arm64 builds
-          - arch: x86_64
-            runner: macos-15-intel  # Intel runner for native x86_64 builds
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Cache Python virtual environment
-        uses: actions/cache@v4
-        with:
-          path: venv-dev
-          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-${{ matrix.arch }}-node-${{ hashFiles('frontend/package-lock.json') }}
-
-      - name: Install dependencies and build
-        run: |
-          chmod +x scripts/build_macos_app.sh
-          ./scripts/build_macos_app.sh ${{ matrix.arch }}
-
-      - name: Get version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
-
-      - name: Create DMG
-        run: |
-          chmod +x scripts/create_dmg.sh
-          sync && sleep 3
-          ./scripts/create_dmg.sh ${{ matrix.arch }}
-
-      - name: List built files
-        run: |
-          echo "Files in dist/:"
-          ls -lh dist/
-
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}
-          path: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload to Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-macOS-${{ matrix.arch }}.dmg
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-python-wheel:
-    name: Build Python Wheel
-    runs-on: ubuntu-latest
-    # Only run wheel build if:
-    # 1. Push to a tag (v*) OR
-    # 2. Manual trigger with build_wheel=true
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_wheel == 'true')
-    permissions:
-      contents: write
-      id-token: write  # Required for trusted publishing to PyPI
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
-
-      - name: Install npm dependencies and build frontend
-        working-directory: frontend
-        run: |
-          npm ci
-          npm run build
-
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install hatchling build
-
-      - name: Get version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
-
-      - name: Build wheel package
-        run: |
-          python -m build --wheel
-
-      - name: List built files
-        run: |
-          echo "Files in dist/:"
-          ls -lh dist/
-
-      - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: search_api_webui-${{ steps.get_version.outputs.version }}-wheel
-          path: dist/*.whl
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload to Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.whl
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to PyPI (if tagged)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: false
-
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: [build-python-wheel]
-    # Only run APK build if:
-    # 1. Push to a tag (v*) OR
-    # 2. Manual trigger with build_android=true
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_android == 'true')
 
     container:
       image: kivy/buildozer:latest
@@ -252,10 +61,10 @@ jobs:
           echo "Checking frontend/dist directory:"
           ls -la frontend/dist/
 
-      - name: Get version from pyproject.toml
+      - name: Get version from buildozer.spec
         id: get_version
         run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          VERSION=$(grep -E '^version = ' buildozer.spec | cut -d '=' -f 2 | tr -d ' ')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
@@ -265,11 +74,6 @@ jobs:
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           MAKEFLAGS: -j4
-
-      - name: Verify AndroidManifest.xml
-        run: |
-          MANIFEST=$(find .buildozer/android/platform/build-*/dists/*/src/main/AndroidManifest.xml 2>/dev/null | head -1)
-          [ -f "$MANIFEST" ] && grep -q 'usesCleartextTraffic="true"' "$MANIFEST" || exit 1
 
       - name: List built files
         run: |
@@ -324,208 +128,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.find_apk.outputs.apk_path }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  add-release-notes:
-    name: Add Release Notes
-    needs: [build-macos, build-python-wheel, build-windows, build-android]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-
-      - name: Create release notes
-        run: |
-          mkdir -p dist
-          cat > dist/RELEASE_NOTES.txt << 'EOF'
-          Search API WebUI - Release
-
-          ## Python Package
-          - search_api_webui-{version}-py3-none-any.whl: Universal Python wheel package (cross-platform)
-
-          ## macOS Distribution
-          - SearchAPIWebUI-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3) Macs
-          - SearchAPIWebUI-macOS-x86_64.dmg: For Intel Macs
-
-          ## Windows Distribution
-          - SearchAPIWebUI-Windows-x64-Setup.exe: For 64-bit Windows systems
-          - SearchAPIWebUI-Windows-x86-Setup.exe: For 32-bit Windows systems
-
-          ## Android Distribution
-          - SearchAPIWebUI-{version}-android-debug.apk: For Android devices (API 21+)
-
-          ### Installation
-          Python package:
-            pip install search_api_webui-{version}-py3-none-any.whl
-
-          macOS app:
-            Download and install the appropriate DMG for your system.
-
-          Apple Silicon users should use the arm64 version for best performance.
-          Intel Mac users should use the x86_64 version.
-
-          Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
-
-          Windows app:
-            Download and run the appropriate Setup.exe for your system.
-
-          Most modern Windows systems should use the x64 version.
-          Only use x86 version for older 32-bit Windows systems.
-
-          Android app:
-            Download and install the APK file on your Android device.
-
-          You may need to enable "Install from unknown sources" in your device settings.
-          Minimum Android version: 5.0 (API level 21).
-          EOF
-
-          echo "Created release notes"
-
-      - name: Upload release notes
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: dist/RELEASE_NOTES.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-windows:
-    name: Build Windows ${{ matrix.arch }}
-    runs-on: windows-latest
-    needs: [build-python-wheel]
-    # Only run Windows build if:
-    # 1. Push to a tag (v*) OR
-    # 2. Manual trigger with build_windows=true
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_windows == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x64
-          - arch: x86
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          architecture: ${{ matrix.arch }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Cache Python virtual environment
-        uses: actions/cache@v4
-        with:
-          path: venv-dev
-          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-${{ matrix.arch }}-node-${{ hashFiles('frontend/package-lock.json') }}
-
-      - name: Install dependencies and build
-        shell: bash
-        env:
-          PYTHONIOENCODING: utf-8
-        run: |
-          set -e
-          echo "Python version:"
-          python --version
-          echo "Python location:"
-          which python
-          echo ""
-          chmod +x scripts/build_windows_app.sh
-          ./scripts/build_windows_app.sh ${{ matrix.arch }}
-
-      - name: Get version from pyproject.toml
-        id: get_version
-        shell: bash
-        run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
-
-      - name: Install Inno Setup
-        shell: powershell
-        run: choco install innosetup -y
-
-      - name: Sign Windows Application
-        shell: powershell
-        env:
-          CI: true
-        run: |
-          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
-          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
-
-          if ($certBase64 -and $certPassword) {
-            Write-Host "Using certificate from GitHub Secrets"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -CertificateBase64 $certBase64 -CertificatePassword $certPassword -ExportCert
-          } else {
-            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath "dist/SearchAPIWebUI/SearchAPIWebUI.exe" -ExportCert
-          }
-
-      - name: Create Windows Installer
-        shell: powershell
-        run: |
-          powershell -ExecutionPolicy Bypass -File ./scripts/create_installer.ps1 -Arch ${{ matrix.arch }}
-
-      - name: Sign Windows Installer
-        shell: powershell
-        env:
-          CI: true
-        run: |
-          $version = (Select-String -Path pyproject.toml -Pattern 'version\s*=\s*"([^"]+)"').Matches.Groups[1].Value
-          $installerPath = "dist/SearchAPIWebUI-$version-Windows-${{ matrix.arch }}-Setup.exe"
-
-          $certBase64 = "${{ secrets.CERTIFICATE_BASE64 }}"
-          $certPassword = "${{ secrets.CERTIFICATE_PASSWD }}"
-
-          if ($certBase64 -and $certPassword) {
-            Write-Host "Using certificate from GitHub Secrets"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath -CertificateBase64 $certBase64 -CertificatePassword $certPassword
-          } else {
-            Write-Host "Warning: Certificate secrets not found, creating new self-signed certificate"
-            powershell -ExecutionPolicy Bypass -File ./scripts/sign_windows_app.ps1 -AppPath $installerPath
-          }
-
-      - name: List built files
-        shell: bash
-        run: |
-          echo "Files in dist/:"
-          ls -lh dist/
-
-      - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}
-          path: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}-Setup.exe
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload to Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/SearchAPIWebUI-${{ steps.get_version.outputs.version }}-Windows-${{ matrix.arch }}-Setup.exe
           draft: false
           prerelease: false
         env:

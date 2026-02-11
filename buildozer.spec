@@ -35,9 +35,7 @@ version = 0.2.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-# Optimized: only include essential packages, others will be bundled as wheels
-# Pin Flask and Werkzeug versions to ensure compatibility
-requirements = python3,kivy,flask==2.2.5,flask-cors,requests,pyyaml,jmespath,querit
+requirements = python3,kivy,flask==2.2.5,flask-cors
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -93,7 +91,7 @@ fullscreen = 0
 #icon.adaptive_background.filename = %(source.dir)s/data/icon_bg.png
 
 # (list) Permissions
-android.permissions = INTERNET,ACCESS_NETWORK_STATE,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.permissions = INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host

@@ -20,22 +20,30 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SearchPage from './SearchPage';
-import ConfigPage from './ConfigPage';
-import ArenaPage from './ArenaPage';
-import './App.css';
-
 function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<SearchPage />} />
-                <Route path="/config" element={<ConfigPage />} />
-                <Route path="/arena" element={<ArenaPage />} />
-            </Routes>
-        </Router>
-    );
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      margin: 0,
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <a
+        href="https://www.google.com"
+        style={{
+          fontSize: '24px',
+          color: '#4285f4',
+          textDecoration: 'none'
+        }}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Google
+      </a>
+    </div>
+  );
 }
 
 export default App;
