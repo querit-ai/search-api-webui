@@ -44,7 +44,6 @@ except ImportError:
 
 # Check if running in Android APK environment
 IS_ANDROID_APP = (
-    getattr(sys, 'frozen', False) and
     'ANDROID_ARGUMENT' in os.environ
 )
 
