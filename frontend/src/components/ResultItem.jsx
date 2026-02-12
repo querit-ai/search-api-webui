@@ -213,23 +213,19 @@ export function ResultItem({ item, compact = false, watermark = null }) {
         e.preventDefault();
         const url = item.url;
 
-        console.log('[ResultItem] Link clicked:', url);
-
         // Check if running in Android WebView environment
-        const isAndroidWebView = (() => {
+        const openInAndroidApp = (() => {
             const ua = navigator.userAgent;
             return ua.includes('SearchAPIWebUI-Android');
         })();
 
-        console.log('[ResultItem] Running in Android WebView:', isAndroidWebView);
-
-        if (isAndroidWebView) {
+        if (openInAndroidApp) {
             try {
                 // Add timeout control (5 seconds)
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                const response = await fetch('/api/open-browser', {
+                const response = await fetch('/api/browser-open', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({url}),

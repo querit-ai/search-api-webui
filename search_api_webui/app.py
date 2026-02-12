@@ -43,12 +43,15 @@ except ImportError:
 
 
 # Check if running in Android APK environment
-IS_ANDROID_APP = (
+# ANDROID_ARGUMENT is set by python-for-android (p4a) build system
+# when packaging the app using buildozer. It indicates the app is
+# running in an Android APK environment.
+IN_ANDROID_APP = (
     'ANDROID_ARGUMENT' in os.environ
 )
 
 # Conditional import of Android modules at module level
-if IS_ANDROID_APP:
+if IN_ANDROID_APP:
     try:
         from android.runnable import run_on_ui_thread
         from jnius import autoclass
@@ -58,7 +61,7 @@ if IS_ANDROID_APP:
         Uri = autoclass('android.net.Uri')
     except ImportError as e:
         logging.error(f'Failed to import Android modules: {e}', exc_info=True)
-        IS_ANDROID_APP = False
+        IN_ANDROID_APP = False
         run_on_ui_thread = None
         Activity = None
         Intent = None
@@ -356,7 +359,7 @@ def search_api():
     return jsonify(result)
 
 
-@app.route('/api/open-browser', methods=['POST'])
+@app.route('/api/browser-open', methods=['POST'])
 def open_browser_external():
     '''
     Android-specific API: Open URL in external browser via Intent.
@@ -369,9 +372,9 @@ def open_browser_external():
         return jsonify({'error': 'URL parameter is required'}), 400
 
     # Check if running in Android APK environment
-    if not IS_ANDROID_APP:
+    if not IN_ANDROID_APP:
         logger.warning(
-            f'open-browser API called but not in Android app '
+            f'browser-open API called but not in Android app '
             f'(frozen={getattr(sys, "frozen", False)}, '
             f'android={"ANDROID_ARGUMENT" in os.environ})'
         )

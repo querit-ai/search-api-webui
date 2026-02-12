@@ -11,6 +11,9 @@ from threading import Thread
 # Set up logger
 logger = logging.getLogger(__name__)
 
+# ANDROID_ARGUMENT is set by python-for-android (p4a) build system
+# when packaging the app using buildozer. It indicates the app is
+# running in an Android APK environment.
 if 'ANDROID_ARGUMENT' in os.environ:
     app_files_dir = os.environ.get('ANDROID_PRIVATE')
     if app_files_dir:
@@ -134,8 +137,7 @@ class SearchWebViewApp(App):
             original_ua = settings.getUserAgentString()
             custom_ua = original_ua + ' SearchAPIWebUI-Android'
             settings.setUserAgentString(custom_ua)
-            logger.info(f'[WebView] Original UA: {original_ua}')
-            logger.info(f'[WebView] Custom UA: {custom_ua}')
+            logger.info(f'[WebView] Set custom UA: {custom_ua}')
 
             # Set WebViewClient to handle navigation
             self.webview.setWebViewClient(WebViewClient())
