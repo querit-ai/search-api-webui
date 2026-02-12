@@ -3,14 +3,18 @@
 # Android entry point for Search API WebUI using Kivy + Buildozer
 # This file enables packaging the Flask app into an Android APK
 
+import logging
 import os
 import time
 from threading import Thread
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
 if 'ANDROID_ARGUMENT' in os.environ:
     app_files_dir = os.environ.get('ANDROID_PRIVATE')
     if app_files_dir:
-        print(f"Setting HOME to Android private files dir: {app_files_dir}")
+        logger.info(f'Setting HOME to Android private files dir: {app_files_dir}')
         os.environ['HOME'] = app_files_dir
         os.environ['XDG_CONFIG_HOME'] = app_files_dir
 
@@ -125,6 +129,13 @@ class SearchWebViewApp(App):
 
             # Enable zoom controls (optional)
             settings.setBuiltInZoomControls(False)
+
+            # Set custom User-Agent to identify Android WebView environment
+            original_ua = settings.getUserAgentString()
+            custom_ua = original_ua + ' SearchAPIWebUI-Android'
+            settings.setUserAgentString(custom_ua)
+            logger.info(f'[WebView] Original UA: {original_ua}')
+            logger.info(f'[WebView] Custom UA: {custom_ua}')
 
             # Set WebViewClient to handle navigation
             self.webview.setWebViewClient(WebViewClient())

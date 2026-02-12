@@ -42,6 +42,36 @@ except ImportError:
     WEBVIEW_AVAILABLE = False
 
 
+# Check if running in Android APK environment
+IS_ANDROID_APP = (
+    getattr(sys, 'frozen', False) and
+    'ANDROID_ARGUMENT' in os.environ
+)
+
+# Conditional import of Android modules at module level
+if IS_ANDROID_APP:
+    try:
+        from android.runnable import run_on_ui_thread
+        from jnius import autoclass
+
+        Activity = autoclass('org.kivy.android.PythonActivity')
+        Intent = autoclass('android.content.Intent')
+        Uri = autoclass('android.net.Uri')
+    except ImportError as e:
+        logging.error(f'Failed to import Android modules: {e}', exc_info=True)
+        IS_ANDROID_APP = False
+        run_on_ui_thread = None
+        Activity = None
+        Intent = None
+        Uri = None
+else:
+    # Mock objects for non-Android environments
+    run_on_ui_thread = None
+    Activity = None
+    Intent = None
+    Uri = None
+
+
 # Auto-enable webview mode when running as packaged executable
 # This replaces the need for a separate PyInstaller runtime hook
 if (
@@ -325,6 +355,52 @@ def search_api():
     # Non-streaming response (backward compatibility)
     result = provider.search(query, api_key, **search_kwargs)
     return jsonify(result)
+
+
+@app.route('/api/open-browser', methods=['POST'])
+def open_browser_external():
+    '''
+    Android-specific API: Open URL in external browser via Intent.
+    Only works when running in Android WebView environment (frozen + Android).
+    '''
+    data = request.json
+    url = data.get('url')
+
+    if not url:
+        return jsonify({'error': 'URL parameter is required'}), 400
+
+    # Check if running in Android APK environment
+    if not IS_ANDROID_APP:
+        logger.warning(
+            f'open-browser API called but not in Android app '
+            f'(frozen={getattr(sys, "frozen", False)}, '
+            f'android={"ANDROID_ARGUMENT" in os.environ})'
+        )
+        return jsonify({
+            'error': 'Not running in Android app container',
+            'frozen': getattr(sys, 'frozen', False),
+            'android': 'ANDROID_ARGUMENT' in os.environ
+        }), 400
+
+    try:
+        # Define function without decorator first
+        def open_browser_impl():
+            '''Open URL in external browser using Android Intent'''
+            context = Activity.mActivity
+            intent = Intent()
+            intent.setAction(Intent.ACTION_VIEW)
+            intent.setData(Uri.parse(url))
+            context.startActivity(intent)
+            logger.info(f'Opened URL in external browser: {url}')
+
+        # Execute on UI thread - call run_on_ui_thread as a function
+        run_on_ui_thread(open_browser_impl)()
+
+        return jsonify({'success': True, 'url': url})
+
+    except Exception as e:
+        logger.error(f'Failed to open browser: {e}', exc_info=True)
+        return jsonify({'error': str(e)}), 500
 
 
 # Host React Frontend
