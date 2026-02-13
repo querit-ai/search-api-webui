@@ -359,15 +359,3 @@ warn_on_root = 1
 #    Then, invoke the command line with the "demo" profile:
 #
 #buildozer --profile demo android debug
-
-#    -----------------------------------------------------------------------------
-#    Release Profile (for GitHub Actions)
-#    Usage: buildozer --profile release android release
-#    -----------------------------------------------------------------------------
-
-[app@release]
-# Android release signing (uses environment variables from GitHub Secrets)
-android.keystore = %(environ:ANDROID_KEYSTORE_PATH)s
-android.keystore_password = %(environ:ANDROID_KEYSTORE_PASSWORD)s
-android.keystore_alias = %(environ:ANDROID_KEY_ALIAS)s
-android.key_password = %(environ:ANDROID_KEY_PASSWORD)s

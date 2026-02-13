@@ -109,6 +109,22 @@ prepare_buildozer_spec() {
     # Replace __VERSION__ placeholder with actual version
     sed "s/__VERSION__/$VERSION/g" "$BUILDOZER_SPEC" > "$BUILDOZER_SPEC_TEMP"
 
+    # For release builds, add signing configuration
+    if [ "$BUILD_MODE" = "release" ] && [ -n "$ANDROID_KEYSTORE_PATH" ]; then
+        print_msg "$BLUE" "Adding release signing configuration to buildozer.spec"
+
+        # Append release signing configuration
+        cat >> "$BUILDOZER_SPEC_TEMP" << EOF
+
+# Release signing configuration (added by build script)
+android.release_artifact = apk
+android.keystore = $ANDROID_KEYSTORE_PATH
+android.keystore_password = $ANDROID_KEYSTORE_PASSWORD
+android.keystore_alias = $ANDROID_KEY_ALIAS
+android.key_password = $ANDROID_KEY_PASSWORD
+EOF
+    fi
+
     # Verify the substitution
     BUILDOZER_VERSION=$(grep -E '^version = ' "$BUILDOZER_SPEC_TEMP" | awk '{print $3}')
 
@@ -190,7 +206,7 @@ build_apk() {
     local build_success=0
     if [ "$BUILD_MODE" = "release" ]; then
         print_msg "$BLUE" "Building release APK with signing..."
-        if buildozer --profile release -v android release; then
+        if buildozer -v android release; then
             build_success=1
         fi
     else
