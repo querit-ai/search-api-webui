@@ -341,7 +341,7 @@ jobs:
     name: Add Release Notes
     needs: [build-macos, build-python-wheel, build-windows, build-android]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -356,49 +356,62 @@ jobs:
       - name: Create release notes
         run: |
           mkdir -p dist
-          cat > dist/RELEASE_NOTES.txt << 'EOF'
-          Search API WebUI - Release
+          VERSION="${{ steps.get_version.outputs.version }}"
+          cat > dist/RELEASE_NOTES.txt << EOF
+          Search API WebUI - Release $VERSION
 
           ## Python Package
-          - search_api_webui-{version}-py3-none-any.whl: Universal Python wheel package (cross-platform)
+          - search_api_webui-$VERSION-py3-none-any.whl: Universal Python wheel package (cross-platform)
 
           ## macOS Distribution
-          - SearchAPIWebUI-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3) Macs
-          - SearchAPIWebUI-macOS-x86_64.dmg: For Intel Macs
+          - SearchAPIWebUI-$VERSION-macOS-arm64.dmg: For Apple Silicon (M1/M2/M3/M4) Macs
+          - SearchAPIWebUI-$VERSION-macOS-x86_64.dmg: For Intel Macs
 
           ## Windows Distribution
-          - SearchAPIWebUI-Windows-x64-Setup.exe: For 64-bit Windows systems
-          - SearchAPIWebUI-Windows-x86-Setup.exe: For 32-bit Windows systems
+          - SearchAPIWebUI-$VERSION-Windows-x64-Setup.exe: For 64-bit Windows systems
+          - SearchAPIWebUI-$VERSION-Windows-x86-Setup.exe: For 32-bit Windows systems
 
           ## Android Distribution
-          - SearchAPIWebUI-{version}-android-debug.apk: For Android devices (API 21+)
+          - SearchAPIWebUI-$VERSION-android-release.apk: Signed release APK for Android devices (API 21+, arm64-v8a)
 
-          ### Installation
-          Python package:
-            pip install search_api_webui-{version}-py3-none-any.whl
+          ---
 
-          macOS app:
-            Download and install the appropriate DMG for your system.
+          ### Installation Instructions
 
-          Apple Silicon users should use the arm64 version for best performance.
-          Intel Mac users should use the x86_64 version.
+          **Python Package:**
+          \`\`\`bash
+          pip install search_api_webui-$VERSION-py3-none-any.whl
+          \`\`\`
 
-          Note: arm64 version can run on Intel Macs via Rosetta 2, but may have reduced performance.
+          **macOS App:**
+          1. Download the appropriate DMG for your system:
+             - Apple Silicon (M1/M2/M3/M4): \`SearchAPIWebUI-$VERSION-macOS-arm64.dmg\`
+             - Intel: \`SearchAPIWebUI-$VERSION-macOS-x86_64.dmg\`
+          2. Open the DMG and drag the app to Applications folder
+          3. First launch: Right-click → Open (to bypass Gatekeeper)
 
-          Windows app:
-            Download and run the appropriate Setup.exe for your system.
+          Note: arm64 version can run on Intel Macs via Rosetta 2, but native x86_64 version is recommended for better performance.
 
-          Most modern Windows systems should use the x64 version.
-          Only use x86 version for older 32-bit Windows systems.
+          **Windows App:**
+          1. Download the appropriate installer:
+             - 64-bit (recommended): \`SearchAPIWebUI-$VERSION-Windows-x64-Setup.exe\`
+             - 32-bit: \`SearchAPIWebUI-$VERSION-Windows-x86-Setup.exe\`
+          2. Run the installer and follow the prompts
+          3. Windows may show a SmartScreen warning - click "More info" → "Run anyway"
 
-          Android app:
-            Download and install the APK file on your Android device.
+          **Android App:**
+          1. Download \`SearchAPIWebUI-$VERSION-android-release.apk\`
+          2. Enable "Install from unknown sources" in your device settings
+          3. Open the APK file to install
+          4. Minimum requirements: Android 5.0 (API 21+), arm64-v8a architecture
 
-          You may need to enable "Install from unknown sources" in your device settings.
-          Minimum Android version: 5.0 (API level 21).
+          ---
+
+          ### What's New
+          See [CHANGELOG.md](https://github.com/querit-ai/search-api-webui/blob/main/CHANGELOG.md) for full release notes.
           EOF
 
-          echo "Created release notes"
+          echo "Created release notes for version $VERSION"
 
       - name: Upload release notes
         uses: softprops/action-gh-release@v2
