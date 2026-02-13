@@ -252,19 +252,23 @@ jobs:
           echo "Checking frontend/dist directory:"
           ls -la frontend/dist/
 
-      - name: Get version from pyproject.toml
-        id: get_version
+      - name: Build release APK with build_android_apk.sh
         run: |
-          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
+          # Decode keystore from GitHub Secrets
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          echo "Keystore created at: $(pwd)/release.keystore"
+          ls -lh release.keystore
 
-      - name: Build APK
-        run: |
-          yes | buildozer -v android debug
+          # Build APK
+          chmod +x scripts/build_android_apk.sh
+          ./scripts/build_android_apk.sh release
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           MAKEFLAGS: -j4
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Verify AndroidManifest.xml
         run: |
@@ -282,6 +286,11 @@ jobs:
       - name: Find and rename APK
         id: find_apk
         run: |
+          # Get version for APK naming
+          VERSION=$(grep -E '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
           # Find the APK file
           APK_PATH=$(find .buildozer/android/platform/build-*/output -name "*.apk" -type f | head -1)
 
@@ -301,8 +310,7 @@ jobs:
           mkdir -p bin
 
           # Copy and rename APK
-          VERSION="${{ steps.get_version.outputs.version }}"
-          NEW_NAME="bin/SearchAPIWebUI-${VERSION}-android-debug.apk"
+          NEW_NAME="bin/SearchAPIWebUI-${VERSION}-android-release.apk"
           cp "$APK_PATH" "$NEW_NAME"
 
           echo "apk_path=$NEW_NAME" >> $GITHUB_OUTPUT
@@ -314,7 +322,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SearchAPIWebUI-${{ steps.get_version.outputs.version }}-android
+          name: SearchAPIWebUI-${{ steps.find_apk.outputs.version }}-android
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
           retention-days: 30

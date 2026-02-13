@@ -1,4 +1,4 @@
-.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app
+.PHONY: all help dev backend frontend dmg build-app exe clean clean-all test check-macos check-windows build-windows-app apk-debug apk-release
 
 # Get version from pyproject.toml
 VERSION := $(shell grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -40,6 +40,8 @@ help:
 	@echo "  make dev          Start development servers (frontend + backend)"
 	@echo "  make dmg          Build macOS DMG (complete package)"
 	@echo "  make exe          Build Windows installer (complete package)"
+	@echo "  make apk-debug    Build Android debug APK"
+	@echo "  make apk-release  Build Android release APK (requires keystore)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make backend      Start backend server only"
@@ -187,3 +189,12 @@ exe: check-windows build-windows-app
 build-windows-app: check-windows
 	@echo "Building Windows app for $(WIN_ARCH)..."
 	@bash scripts/build_windows_app.sh $(WIN_ARCH)
+
+# Android APK build targets
+apk-debug:
+	@echo "Building Android debug APK..."
+	@bash scripts/build_android_apk.sh debug
+
+apk-release:
+	@echo "Building Android release APK..."
+	@bash scripts/build_android_apk.sh release

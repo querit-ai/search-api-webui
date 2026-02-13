@@ -31,7 +31,9 @@ source.exclude_dirs = tests,bin,venv,venv-dev,.git,.github,build,dist,docs,front
 source.exclude_patterns = *.pyc,*.pyo,*.spec,*.exe,*.dmg,*.app,*/CVS/*,*/RCS/*,*/tmp/*,*/__pycache__/*
 
 # (str) Application versioning (method 1)
-version = 0.2.1
+# NOTE: __VERSION__ is a placeholder replaced by scripts/build_android_apk.sh
+# The script reads the actual version from pyproject.toml during build
+version = __VERSION__
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
@@ -357,3 +359,15 @@ warn_on_root = 1
 #    Then, invoke the command line with the "demo" profile:
 #
 #buildozer --profile demo android debug
+
+#    -----------------------------------------------------------------------------
+#    Release Profile (for GitHub Actions)
+#    Usage: buildozer --profile release android release
+#    -----------------------------------------------------------------------------
+
+[app@release]
+# Android release signing (uses environment variables from GitHub Secrets)
+android.keystore = %(environ:ANDROID_KEYSTORE_PATH)s
+android.keystore_password = %(environ:ANDROID_KEYSTORE_PASSWORD)s
+android.keystore_alias = %(environ:ANDROID_KEY_ALIAS)s
+android.key_password = %(environ:ANDROID_KEY_PASSWORD)s

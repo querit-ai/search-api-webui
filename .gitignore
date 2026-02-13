@@ -23,3 +23,8 @@ frontend/dist/
 build/
 dist/
 *.egg-info/
+
+# Android
+*.keystore
+*.jks
+release.keystore
