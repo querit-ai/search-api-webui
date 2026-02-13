@@ -1,6 +1,6 @@
 # Search API WebUI
 
-Python WebUI with native Mac/Windows Apps for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel etc.).
+Python WebUI with native Mac/Windows/Android Apps for testing, comparing, and visualizing Search APIs (Querit, You, Tavily, Exa, Baidu, Brave, Parallel etc.).
 
 ![Screenshot](docs/images/screenshot.webp)
 
@@ -54,6 +54,25 @@ For Windows users, you can download the installer from the GitHub Releases page:
 **Note**:
 - The installer requires .NET Framework 4.5 or later (usually pre-installed on Windows 8+)
 - Windows Defender SmartScreen may show a warning for unsigned applications. Click "More info" → "Run anyway" to proceed
+
+### Android Installation
+
+For Android users, you can download the APK from the GitHub Releases page:
+
+1. Visit the [Releases page](https://github.com/querit-ai/search-api-webui/releases)
+2. Download the APK file: `SearchAPIWebUI-<version>-android-release.apk`
+3. Enable "Install from unknown sources" in your device settings:
+   - Go to **Settings** > **Security** > **Unknown sources**
+   - Or on newer Android versions: **Settings** > **Apps** > **Special app access** > **Install unknown apps**
+4. Open the downloaded APK file to install
+5. Launch `SearchAPIWebUI` from your app drawer
+
+**Requirements**:
+- Android 5.0 (API 21) or later
+- arm64-v8a architecture (covers 95%+ of modern Android devices)
+- Internet permission (required for API calls)
+
+**Note**: The app is signed with QUERIT PRIVATE LIMITED release certificate for security.
 
 ### Install via Pip
 
@@ -116,6 +135,24 @@ make build-app    # Build only the .app bundle (without DMG)
 make ARCH=arm64 dmg   # Force Apple Silicon build
 make ARCH=x86_64 dmg  # Force Intel build (requires x86_64 Python)
 ```
+
+**Build Android APK** (requires Docker or Linux with Buildozer)
+
+```bash
+# Build debug APK
+./scripts/build_android_apk.sh debug
+
+# Build release APK (requires keystore)
+./scripts/build_android_apk.sh release
+```
+
+**Prerequisites for Android Build**:
+- Linux environment or macOS with Docker
+- Buildozer (`pip install buildozer`)
+- Android SDK and NDK (automatically downloaded by Buildozer)
+- For release builds: Android keystore file and signing credentials
+
+The APK will be created in the `bin/` directory.
 
 ### Manual Setup
 
