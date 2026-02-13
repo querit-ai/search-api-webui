@@ -123,18 +123,19 @@ prepare_buildozer_spec() {
         print_msg "$BLUE" "Keystore alias: $ANDROID_KEY_ALIAS"
 
         # Append release signing configuration
-        # Using p4a.* prefix for better compatibility
+        # Using android.* prefix with correct parameter names
         cat >> "$BUILDOZER_SPEC_TEMP" << EOF
 
 # Release signing configuration (added by build script)
 android.release_artifact = apk
 android.accept_sdk_license = True
 
-# Python-for-Android signing configuration
-p4a.release_keystore = $ANDROID_KEYSTORE_PATH
-p4a.release_keyalias = $ANDROID_KEY_ALIAS
-p4a.release_keystore_passwd = $ANDROID_KEYSTORE_PASSWORD
-p4a.release_keyalias_passwd = $ANDROID_KEY_PASSWORD
+# Android release signing
+android.sign = 1
+android.keystore = $ANDROID_KEYSTORE_PATH
+android.keyalias = $ANDROID_KEY_ALIAS
+android.keystorepw = $ANDROID_KEYSTORE_PASSWORD
+android.keyaliaspw = $ANDROID_KEY_PASSWORD
 EOF
 
         print_msg "$GREEN" "Release signing configuration added to temporary buildozer.spec"
