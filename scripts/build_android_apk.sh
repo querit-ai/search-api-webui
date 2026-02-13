@@ -113,16 +113,31 @@ prepare_buildozer_spec() {
     if [ "$BUILD_MODE" = "release" ] && [ -n "$ANDROID_KEYSTORE_PATH" ]; then
         print_msg "$BLUE" "Adding release signing configuration to buildozer.spec"
 
+        # Verify keystore file exists
+        if [ ! -f "$ANDROID_KEYSTORE_PATH" ]; then
+            print_msg "$RED" "Error: Keystore file not found at: $ANDROID_KEYSTORE_PATH"
+            exit 1
+        fi
+
+        print_msg "$GREEN" "Keystore verified: $ANDROID_KEYSTORE_PATH"
+        print_msg "$BLUE" "Keystore alias: $ANDROID_KEY_ALIAS"
+
         # Append release signing configuration
+        # Using p4a.* prefix for better compatibility
         cat >> "$BUILDOZER_SPEC_TEMP" << EOF
 
 # Release signing configuration (added by build script)
 android.release_artifact = apk
-android.keystore = $ANDROID_KEYSTORE_PATH
-android.keystore_password = $ANDROID_KEYSTORE_PASSWORD
-android.keystore_alias = $ANDROID_KEY_ALIAS
-android.key_password = $ANDROID_KEY_PASSWORD
+android.accept_sdk_license = True
+
+# Python-for-Android signing configuration
+p4a.release_keystore = $ANDROID_KEYSTORE_PATH
+p4a.release_keyalias = $ANDROID_KEY_ALIAS
+p4a.release_keystore_passwd = $ANDROID_KEYSTORE_PASSWORD
+p4a.release_keyalias_passwd = $ANDROID_KEY_PASSWORD
 EOF
+
+        print_msg "$GREEN" "Release signing configuration added to temporary buildozer.spec"
     fi
 
     # Verify the substitution
