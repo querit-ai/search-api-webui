@@ -218,6 +218,19 @@ build_apk() {
     mv "$BUILDOZER_SPEC" "${BUILDOZER_SPEC}.original"
     mv "$BUILDOZER_SPEC_TEMP" "$BUILDOZER_SPEC"
 
+    # Export P4A_RELEASE_* environment variables for release builds
+    if [ "$BUILD_MODE" = "release" ] && [ -n "$ANDROID_KEYSTORE_PATH" ]; then
+        print_msg "$BLUE" "Exporting P4A_RELEASE_* environment variables..."
+        export P4A_RELEASE_KEYSTORE="$ANDROID_KEYSTORE_PATH"
+        export P4A_RELEASE_KEYALIAS="$ANDROID_KEY_ALIAS"
+        export P4A_RELEASE_KEYSTORE_PASSWD="$ANDROID_KEYSTORE_PASSWORD"
+        export P4A_RELEASE_KEYALIAS_PASSWD="$ANDROID_KEY_PASSWORD"
+
+        print_msg "$GREEN" "P4A release environment variables set"
+        print_msg "$BLUE" "P4A_RELEASE_KEYSTORE: $P4A_RELEASE_KEYSTORE"
+        print_msg "$BLUE" "P4A_RELEASE_KEYALIAS: $P4A_RELEASE_KEYALIAS"
+    fi
+
     # Build command
     local build_success=0
     if [ "$BUILD_MODE" = "release" ]; then
