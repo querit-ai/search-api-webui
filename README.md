@@ -139,11 +139,8 @@ make ARCH=x86_64 dmg  # Force Intel build (requires x86_64 Python)
 **Build Android APK** (requires Docker or Linux with Buildozer)
 
 ```bash
-# Build debug APK
-./scripts/build_android_apk.sh debug
-
-# Build release APK (requires keystore)
-./scripts/build_android_apk.sh release
+make apk-debug     # Build debug APK
+make apk-release   # Build release APK (requires keystore)
 ```
 
 **Prerequisites for Android Build**:
@@ -185,6 +182,9 @@ python -m search_api_webui.app
 make              # Build Python wheel package (default)
 make dev          # Start development servers with hot reload
 make dmg          # Build macOS DMG for current architecture
+make exe          # Build Windows installer for current architecture
+make apk-debug    # Build Android debug APK
+make apk-release  # Build Android release APK (requires keystore)
 make clean        # Clean build artifacts
 make clean-all    # Clean everything including virtual environment
 make help         # Show all available commands
