@@ -182,13 +182,14 @@ function SearchPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-3 sm:p-4 md:p-6">
+            <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
                 <div className="text-center space-y-2">
                     <h1
                         className={cn(
-                            'text-4xl font-bold bg-gradient-to-r',
-                            'from-blue-600 to-indigo-600 bg-clip-text text-transparent'
+                            'text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r',
+                            'from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent',
+                            'drop-shadow-sm'
                         )}
                     >
                         Search API WebUI
@@ -196,20 +197,20 @@ function SearchPage() {
                 </div>
 
                 {/* Control Panel */}
-                <Card className="p-6 shadow-md border-0 ring-1 ring-gray-200">
-                    <form onSubmit={handleSearch} className="space-y-6">
+                <Card className="p-4 sm:p-5 md:p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 ring-1 ring-gray-200/50 backdrop-blur-sm">
+                    <form onSubmit={handleSearch} className="space-y-4 sm:space-y-5 md:space-y-6">
 
                         {/* Top Row: Engine Selection & Status/Config */}
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex flex-col sm:flex-col md:flex-row justify-between items-stretch sm:items-stretch md:items-center gap-3 sm:gap-4">
                             {/* Left: Engine Selector */}
-                            <div className="flex items-center gap-3 w-full md:w-auto">
-                                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
+                                <label className="text-sm font-medium text-gray-700 sm:whitespace-nowrap">
                                     Engine
                                 </label>
-                                <div className="relative w-full md:w-64">
+                                <div className="relative w-full sm:flex-1 md:w-64">
                                     <select
                                         className={cn(
-                                            'flex h-12 w-full items-center',
+                                            'flex h-10 sm:h-11 md:h-12 w-full items-center',
                                             'justify-between rounded-md border',
                                             'border-gray-200 bg-white px-3 py-2',
                                             'text-sm ring-offset-background',
@@ -231,7 +232,7 @@ function SearchPage() {
                                     </select>
                                     <ChevronDown
                                         className={cn(
-                                            'absolute right-3 top-3.5 h-4 w-4',
+                                            'absolute right-3 top-2.5 sm:top-3 md:top-3.5 h-4 w-4',
                                             'opacity-50 pointer-events-none'
                                         )}
                                     />
@@ -239,23 +240,25 @@ function SearchPage() {
                             </div>
 
                             {/* Right: Status Pill + Arena + Config Button */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between sm:justify-center md:justify-end gap-2 sm:gap-3 w-full md:w-auto">
                                 {/* Status Pill */}
                                 <div
                                     className={cn(
-                                        'flex items-center gap-1.5 text-xs font-medium',
-                                        'px-3 py-1.5 rounded-full border',
+                                        'flex items-center gap-1 sm:gap-1.5 text-xs font-medium',
+                                        'px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-full border-2',
+                                        'flex-shrink-0 shadow-sm transition-all duration-200',
                                         hasKey
-                                            ? 'bg-green-50 text-green-700 border-green-200'
-                                            : 'bg-red-50 text-red-700 border-red-200'
+                                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 shadow-emerald-200/50'
+                                            : 'bg-rose-100 text-rose-700 border-rose-300 shadow-rose-200/50'
                                     )}
                                 >
                                     {hasKey ? (
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                                        <CheckCircle2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-green-600" />
                                     ) : (
-                                        <XCircle className="w-3.5 h-3.5 text-red-600" />
+                                        <XCircle className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-red-600" />
                                     )}
-                                    {hasKey ? 'Ready' : 'No API Key'}
+                                    <span className="hidden sm:inline">{hasKey ? 'Ready' : 'No API Key'}</span>
+                                    <span className="sm:hidden">{hasKey ? 'OK' : 'No Key'}</span>
                                 </div>
 
                                 {/* Arena Button */}
@@ -265,9 +268,9 @@ function SearchPage() {
                                     size="icon"
                                     onClick={handleArenaClick}
                                     title="Enter SearchAPIWebUI Arena"
-                                    className="h-9 w-9 border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                                    className="h-8 w-8 sm:h-9 sm:w-9 border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 hover:scale-105 transition-transform duration-200 flex-shrink-0 shadow-sm"
                                 >
-                                    <Swords className="w-4 h-4" />
+                                    <Swords className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </Button>
 
                                 {/* Config Button */}
@@ -277,18 +280,18 @@ function SearchPage() {
                                     size="icon"
                                     onClick={handleConfigClick}
                                     title="Configure Provider"
-                                    className="h-9 w-9 border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+                                    className="h-8 w-8 sm:h-9 sm:w-9 border-gray-200 hover:bg-gray-100 hover:text-gray-900 flex-shrink-0"
                                 >
-                                    <Settings className="w-4 h-4 text-gray-600" />
+                                    <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
                                 </Button>
                             </div>
                         </div>
 
                         {/* Bottom Row: Search Input & Action */}
-                        <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
                             <div className="w-full flex-1 space-y-2">
                                 <Input
-                                    className="h-12 text-lg"
+                                    className="h-10 sm:h-11 md:h-12 text-base sm:text-lg"
                                     placeholder="Enter your search query..."
                                     value={query}
                                     onChange={handleQueryChange}
@@ -299,13 +302,13 @@ function SearchPage() {
                             <Button
                                 type="submit"
                                 size="lg"
-                                className="h-12 px-8 flex-shrink-0"
+                                className="h-10 sm:h-11 md:h-12 px-6 sm:px-8 flex-shrink-0 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
                                 disabled={loading}
                             >
                                 {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                    <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin mr-2" />
                                 ) : (
-                                    <Search className="w-5 h-5 mr-2" />
+                                    <Search className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
                                 )}
                                 {loading ? (statusMessage || 'Searching...') : 'Search'}
                             </Button>
@@ -330,45 +333,45 @@ function SearchPage() {
                 {searched && !loading && !error && (
                     <div
                         className={cn(
-                            'space-y-6 animate-in fade-in',
+                            'space-y-4 sm:space-y-5 md:space-y-6 animate-in fade-in',
                             'slide-in-from-bottom-4 duration-500'
                         )}
                     >
                         {/* Metrics Header */}
-                        <div className="flex items-center justify-between border-b pb-2">
-                            <h2 className="text-lg font-semibold text-gray-800">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-3 gap-3">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
                                 Results
-                                <span className="text-gray-400 font-normal text-sm ml-2">
+                                <span className="text-gray-400 font-normal text-xs sm:text-sm ml-2">
                                     Found {results.length} items
                                 </span>
                             </h2>
                             {metrics && (
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                     <Badge
                                         variant="outline"
-                                        className="gap-1 text-gray-500"
+                                        className="gap-1 text-gray-500 text-xs"
                                         title="Total client latency"
                                     >
                                         <Clock className="w-3 h-3" />
-                                        {metrics.latency_ms}ms
+                                        <span className="hidden sm:inline">Latency: </span>{metrics.latency_ms}ms
                                     </Badge>
                                     {metrics.server_latency_ms !== null && (
                                         <Badge
                                             variant="outline"
-                                            className="gap-1 text-blue-500"
+                                            className="gap-1 text-blue-500 text-xs"
                                             title="Server processing latency"
                                         >
                                             <Zap className="w-3 h-3" />
-                                            Server: {metrics.server_latency_ms}ms
+                                            <span className="hidden lg:inline">Server: </span>{metrics.server_latency_ms}ms
                                         </Badge>
                                     )}
                                     <Badge
                                         variant="outline"
-                                        className="gap-1 text-gray-500"
+                                        className="gap-1 text-gray-500 text-xs"
                                         title="Response size in bytes"
                                     >
                                         <Database className="w-3 h-3" />
-                                        {metrics.size_bytes} B
+                                        <span className="hidden sm:inline">Size: </span>{metrics.size_bytes} B
                                     </Badge>
                                 </div>
                             )}
@@ -376,7 +379,7 @@ function SearchPage() {
 
                         {/* Result List */}
                         {results.length > 0 ? (
-                            <div className="grid gap-4">
+                            <div className="grid gap-3 sm:gap-4">
                                 {results.map((item, idx) => (
                                     <ResultItem key={item.url || idx} item={item} watermark={selectedProvider} />
                                 ))}
@@ -384,12 +387,12 @@ function SearchPage() {
                         ) : (
                             <div
                                 className={cn(
-                                    'text-center py-12 bg-white rounded-lg',
+                                    'text-center py-8 sm:py-10 md:py-12 bg-white rounded-lg',
                                     'border border-dashed border-gray-300'
                                 )}
                             >
-                                <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500">No results found.</p>
+                                <Search className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
+                                <p className="text-sm sm:text-base text-gray-500">No results found.</p>
                             </div>
                         )}
                     </div>

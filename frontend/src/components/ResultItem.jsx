@@ -105,7 +105,7 @@ function renderNestedValue(value, key) {
         // Special handling for image arrays
         if (key === 'images' && value.length > 0 && value[0].url) {
             return (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mt-2">
                     {value.map((img, idx) => (
                         <a
                             key={idx}
@@ -117,7 +117,7 @@ function renderNestedValue(value, key) {
                             <img
                                 src={img.url.startsWith('http') ? img.url : `https://${img.url}`}
                                 alt={`Image ${idx + 1}`}
-                                className="h-20 w-auto object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
+                                className="h-16 sm:h-20 w-full object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
                                 loading="lazy"
                             />
                         </a>
@@ -155,7 +155,7 @@ function renderNestedValue(value, key) {
                 <img
                     src={value.startsWith('http') ? value : `https://${value}`}
                     alt="Thumbnail"
-                    className="h-20 w-auto object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
+                    className="h-16 sm:h-20 w-auto max-w-full object-cover rounded border border-gray-200 hover:border-blue-400 transition-colors"
                     loading="lazy"
                 />
             </a>
@@ -198,7 +198,7 @@ export function ResultItem({ item, compact = false, watermark = null }) {
         displayString = snippetData;
     }
 
-    // Truncation logic based on character count
+    // Truncation logic based on character count and screen size
     const LIMIT = compact ? 160 : 240;
     const shouldTruncate = displayString.length > LIMIT;
 
@@ -262,16 +262,17 @@ export function ResultItem({ item, compact = false, watermark = null }) {
     return (
         <Card
             className={cn(
-                'hover:shadow-md transition-shadow duration-200 border-gray-100 relative overflow-hidden',
-                compact ? 'p-4' : 'p-5'
+                'hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500 relative overflow-hidden',
+                'hover:border-l-indigo-600 hover:scale-[1.01]',
+                compact ? 'p-3 sm:p-4' : 'p-4 sm:p-5'
             )}
         >
             {/* Watermark Background - Repeated Pattern */}
             {watermark && (
-                <div className="absolute inset-0 pointer-events-none select-none opacity-[0.03] overflow-hidden flex items-start justify-end pr-4 pt-2">
-                    <div className="flex flex-col gap-4 transform rotate-12">
+                <div className="absolute inset-0 pointer-events-none select-none opacity-[0.03] overflow-hidden flex items-start justify-end pr-2 sm:pr-4 pt-2">
+                    <div className="flex flex-col gap-2 sm:gap-4 transform rotate-12">
                         {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="text-4xl font-black tracking-wider whitespace-nowrap">
+                            <div key={i} className="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider whitespace-nowrap">
                                 {watermark}
                             </div>
                         ))}
@@ -286,37 +287,43 @@ export function ResultItem({ item, compact = false, watermark = null }) {
                     onClick={handleLinkClick}
                     className="flex items-start justify-between gap-2"
                 >
-                    <h3 className={cn("font-medium text-blue-600 group-hover:underline break-words", compact ? "text-sm" : "text-base")}>
+                    <h3 className={cn(
+                        "font-medium text-blue-600 group-hover:text-indigo-600 transition-colors duration-200 break-words",
+                        compact ? "text-xs sm:text-sm" : "text-sm sm:text-base"
+                    )}>
                         {item.title || 'Untitled'}
                     </h3>
                     <ExternalLink
                         className={cn(
-                            'opacity-0 group-hover:opacity-50 transition-opacity mt-1 flex-shrink-0',
-                            compact ? "w-3 h-3" : "w-4 h-4"
+                            'opacity-0 group-hover:opacity-50 transition-opacity mt-0.5 sm:mt-1 flex-shrink-0',
+                            compact ? "w-3 h-3" : "w-3.5 h-3.5 sm:w-4 sm:h-4"
                         )}
                     />
                 </a>
                 <div className="text-xs mt-1 mb-2">
                     {displayPageAge ? (
-                        <div className="flex items-center gap-1.5 text-green-700">
-                            <span className="truncate">{displayPageAge}</span>
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-green-700 flex-wrap">
+                            <span className="truncate text-xs">{displayPageAge}</span>
                             <span className="text-green-700">|</span>
                             {item.site_icon && (
-                                <img src={item.site_icon} alt="" className="w-4 h-4 flex-shrink-0" />
+                                <img src={item.site_icon} alt="" className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                             )}
-                            <span className="truncate max-w-full">{item.site_name || item.url}</span>
+                            <span className="truncate max-w-[200px] sm:max-w-full text-xs">{item.site_name || item.url}</span>
                         </div>
                     ) : (
-                        <span className="truncate max-w-full text-green-700 inline-flex items-center gap-1.5">
+                        <span className="truncate max-w-full text-green-700 inline-flex items-center gap-1 sm:gap-1.5 text-xs">
                             {item.site_icon && (
-                                <img src={item.site_icon} alt="" className="w-4 h-4 flex-shrink-0" />
+                                <img src={item.site_icon} alt="" className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                             )}
                             {item.site_name || item.url}
                         </span>
                     )}
                 </div>
 
-                <div className={cn("text-gray-700 leading-relaxed whitespace-pre-wrap", compact ? "text-xs" : "text-sm")}>
+                <div className={cn(
+                    "text-gray-700 leading-relaxed whitespace-pre-wrap",
+                    compact ? "text-xs" : "text-xs sm:text-sm"
+                )}>
                     {shouldTruncate && !expanded ? (
                         isJsonSnippet ? (
                             // For JSON snippets, render with bold keys even when truncated
@@ -347,7 +354,7 @@ export function ResultItem({ item, compact = false, watermark = null }) {
                                                         <span>... </span>
                                                         <button
                                                             onClick={toggleExpand}
-                                                            className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                                            className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5 text-xs"
                                                         >
                                                             Expand <ChevronDown className="w-3 h-3" />
                                                         </button>
@@ -373,7 +380,7 @@ export function ResultItem({ item, compact = false, watermark = null }) {
                                 <span>... </span>
                                 <button
                                     onClick={toggleExpand}
-                                    className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                    className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5 text-xs"
                                 >
                                     Expand <ChevronDown className="w-3 h-3" />
                                 </button>
@@ -396,7 +403,7 @@ export function ResultItem({ item, compact = false, watermark = null }) {
                             {shouldTruncate && (
                                 <button
                                     onClick={toggleExpand}
-                                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5"
+                                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-0.5 text-xs"
                                 >
                                     Collapse <ChevronUp className="w-3 h-3" />
                                 </button>

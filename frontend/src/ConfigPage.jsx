@@ -191,27 +191,27 @@ function ConfigPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
             <div className="max-w-2xl mx-auto">
                 <Button
                     variant="ghost"
-                    className="mb-6 pl-0 text-gray-500 hover:text-gray-900"
+                    className="mb-4 sm:mb-6 pl-0 text-gray-500 hover:text-gray-900"
                     onClick={() => navigate(`/?provider=${selectedName}`)}
                 >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Search
                 </Button>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                             Configuration
                         </h1>
-                        <p className="text-gray-500 mt-2">
+                        <p className="text-sm sm:text-base text-gray-500 mt-2">
                             Manage API keys and advanced settings for search providers.
                         </p>
                     </div>
 
-                    <Card className="p-6 space-y-8">
+                    <Card className="p-4 sm:p-5 md:p-6 space-y-6 sm:space-y-8">
                         {/* Provider Selection */}
                         <div className="space-y-3">
                             <label className="text-sm font-medium flex items-center gap-2 text-gray-700">
@@ -382,28 +382,30 @@ function ConfigPage() {
 
                         {/* Save Action */}
                         <div className="pt-4">
-                            <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
+                            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
                                 <Save className="w-4 h-4 mr-2" />
-                                {saving ? 'Saving Configuration...' : 'Save Configuration'}
+                                <span className="hidden sm:inline">{saving ? 'Saving Configuration...' : 'Save Configuration'}</span>
+                                <span className="sm:hidden">{saving ? 'Saving...' : 'Save'}</span>
                             </Button>
                         </div>
 
                         {/* Technical Details (Read-only) */}
-                        <div className="border-t pt-6 mt-6">
-                            <div className="flex items-center justify-between mb-4">
+                        <div className="border-t pt-4 sm:pt-6 mt-4 sm:mt-6">
+                            <div className="flex items-center justify-between mb-3 sm:mb-4">
                                 <h3 className="text-sm font-semibold flex items-center gap-2 text-gray-900">
                                     <Code className="w-4 h-4" />
-                                    Provider Specs (Read-only)
+                                    <span className="hidden sm:inline">Provider Specs (Read-only)</span>
+                                    <span className="sm:hidden">Provider Specs</span>
                                 </h3>
                             </div>
 
-                            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto shadow-inner">
+                            <div className="bg-gray-900 rounded-lg p-3 sm:p-4 overflow-x-auto shadow-inner">
                                 {currentDetails ? (
-                                    <pre className="text-xs text-gray-300 font-mono leading-relaxed">
+                                    <pre className="text-xs leading-relaxed text-gray-300 font-mono">
                                         {JSON.stringify(currentDetails, null, 2)}
                                     </pre>
                                 ) : (
-                                    <p className="text-gray-500 text-sm">No details available</p>
+                                    <p className="text-gray-500 text-xs sm:text-sm">No details available</p>
                                 )}
                             </div>
                         </div>

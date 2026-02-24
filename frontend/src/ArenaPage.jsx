@@ -198,41 +198,48 @@ function ArenaPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+            <div className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 shadow-md">
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/?provider=${leftProvider}`)}
+                            className="h-8 w-8 sm:h-10 sm:w-10"
                         >
-                            <ArrowLeft className="w-5 h-5 text-gray-600" />
+                            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                         </Button>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-2">
-                            <Trophy className="w-6 h-6 text-purple-600" />
-                            SearchAPIWebUI Arena
+                        <h1 className="text-sm sm:text-lg md:text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-1 sm:gap-2 drop-shadow-sm">
+                            <Trophy className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600 flex-shrink-0" />
+                            <span className="hidden sm:inline">SearchAPIWebUI Arena</span>
+                            <span className="sm:hidden">Arena</span>
                         </h1>
                     </div>
 
                     {/* Search Bar in Header */}
-                    <form onSubmit={handleCompare} className="flex-1 max-w-2xl mx-4 flex gap-2">
+                    <form onSubmit={handleCompare} className="flex-1 max-w-2xl flex gap-2">
                         <Input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Enter a query to compare providers..."
-                            className="h-10"
+                            placeholder="Compare providers..."
+                            className="h-8 sm:h-9 md:h-10 text-sm"
                         />
-                        <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fight!"}
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-8 sm:h-9 md:h-10 px-3 sm:px-4 text-sm whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200"
+                        >
+                            {loading ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" /> : <span className="hidden sm:inline">Fight!</span>}
+                            {loading ? '' : <span className="sm:hidden">Go</span>}
                         </Button>
                     </form>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 max-w-7xl mx-auto w-full p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 max-w-7xl mx-auto w-full p-2 sm:p-3 md:p-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
 
                 {/* Left Column */}
                 <ArenaColumn
@@ -272,35 +279,45 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
         (result.metrics.size_bytes > opponentResult.metrics.size_bytes);
 
     return (
-        <div className="flex flex-col gap-4 h-full">
+        <div className="flex flex-col gap-3 sm:gap-4 h-full">
             {/* Selector Card */}
-            <Card className="p-4 border-t-4 border-t-transparent data-[side=Left]:border-t-blue-500 data-[side=Right]:border-t-orange-500" data-side={side}>
-                <select
-                    className="w-full h-10 rounded-md border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    value={selected}
-                    onChange={(e) => onSelect(e.target.value)}
-                >
-                    {providers.map((p) => (
-                        <option key={p.name} value={p.name}>{p.name}</option>
-                    ))}
-                </select>
+            <Card className={cn(
+                "p-3 sm:p-4 border-t-8 shadow-lg hover:shadow-xl transition-all duration-300",
+                side === "Left"
+                    ? "border-t-blue-500 bg-gradient-to-br from-blue-50/50 to-white"
+                    : "border-t-orange-500 bg-gradient-to-br from-orange-50/50 to-white"
+            )} data-side={side}>
+                <div className="mb-2 sm:mb-3">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-500 mb-2">{side} Provider</div>
+                    <select
+                        className="w-full h-9 sm:h-10 rounded-md border border-gray-300 px-2 sm:px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={selected}
+                        onChange={(e) => onSelect(e.target.value)}
+                    >
+                        {providers.map((p) => (
+                            <option key={p.name} value={p.name}>{p.name}</option>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Metrics Display */}
                 {result && !result.error && (
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
                         {/* Client Latency Bar */}
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="flex items-center gap-1 text-gray-600">
-                                    <Clock className="w-3 h-3" /> Client Latency
+                                    <Clock className="w-3 h-3" />
+                                    <span className="hidden sm:inline">Client Latency</span>
+                                    <span className="sm:hidden">Latency</span>
                                 </span>
-                                <span className={cn("font-mono font-bold", isWinnerLatency ? "text-green-600" : "text-gray-900")}>
+                                <span className={cn("font-mono font-bold text-xs sm:text-sm", isWinnerLatency ? "text-emerald-600 drop-shadow-sm" : "text-gray-900")}>
                                     {result.metrics.latency_ms}ms
                                 </span>
                             </div>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
                                 <div
-                                    className={cn("h-full rounded-full transition-all duration-500", isWinnerLatency ? "bg-green-500" : "bg-gray-400")}
+                                    className={cn("h-full rounded-full transition-all duration-500 shadow-sm", isWinnerLatency ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : "bg-gray-400")}
                                     style={{ width: '100%' }}
                                 />
                             </div>
@@ -311,9 +328,11 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                             <div className="space-y-1">
                                 <div className="flex justify-between text-xs">
                                     <span className="flex items-center gap-1 text-gray-600">
-                                        <Zap className="w-3 h-3" /> Server Latency
+                                        <Zap className="w-3 h-3" />
+                                        <span className="hidden sm:inline">Server Latency</span>
+                                        <span className="sm:hidden">Server</span>
                                     </span>
-                                    <span className="font-mono font-bold text-blue-600">
+                                    <span className="font-mono font-bold text-blue-600 text-xs sm:text-sm">
                                         {result.metrics.server_latency_ms}ms
                                     </span>
                                 </div>
@@ -324,9 +343,11 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="flex items-center gap-1 text-gray-600">
-                                    <Database className="w-3 h-3" /> Response Size
+                                    <Database className="w-3 h-3" />
+                                    <span className="hidden sm:inline">Response Size</span>
+                                    <span className="sm:hidden">Size</span>
                                 </span>
-                                <span className="font-mono text-gray-900">
+                                <span className="font-mono text-gray-900 text-xs sm:text-sm">
                                     {result.metrics.size_bytes} B
                                 </span>
                             </div>
@@ -336,18 +357,18 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
             </Card>
 
             {/* Results List Area */}
-            <div className="flex-1 bg-gray-100/50 rounded-lg p-2 overflow-y-auto min-h-[500px] border border-dashed border-gray-200">
+            <div className="flex-1 bg-gray-100/50 rounded-lg p-2 overflow-y-auto min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] border border-dashed border-gray-200">
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
-                        <Loader2 className="w-8 h-8 animate-spin" />
-                        <span className="text-sm">{statusMessage || 'Fetching results...'}</span>
+                        <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin" />
+                        <span className="text-xs sm:text-sm text-center px-2">{statusMessage || 'Fetching results...'}</span>
                     </div>
                 ) : result?.error ? (
-                    <div className="p-4 bg-red-50 text-red-600 rounded-md flex items-center gap-2 text-sm">
-                        <AlertCircle className="w-4 h-4" /> {result.error}
+                    <div className="p-3 sm:p-4 bg-red-50 text-red-600 rounded-md flex items-center gap-2 text-xs sm:text-sm">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" /> <span>{result.error}</span>
                     </div>
                 ) : result?.results ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                          <div className="text-xs text-gray-400 text-center uppercase tracking-widest py-2">
                             {result.results.length} Results Found
                         </div>
@@ -356,7 +377,7 @@ function ArenaColumn({ side, providers, selected, onSelect, result, opponentResu
                         ))}
                     </div>
                 ) : (
-                    <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                    <div className="h-full flex items-center justify-center text-gray-400 text-xs sm:text-sm">
                         Ready to compare
                     </div>
                 )}
